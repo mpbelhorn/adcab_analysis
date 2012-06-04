@@ -7,6 +7,8 @@
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
+#include "RooCategory.h"
+#include "RooDataSet.h"
 #include <iostream>
 
 class DileptonEvents {
@@ -104,16 +106,28 @@ class DileptonEvents {
   TBranch *b_l0_svdz;
   TBranch *b_l1_svdz;
 
-   DileptonEvents(TTree *tree=0);
-   virtual ~DileptonEvents();
-   virtual Int_t    cut(Long64_t entry);
-   virtual Int_t    getEntry(Long64_t entry);
-   virtual Long64_t loadTree(Long64_t entry);
-   virtual void     init(TTree *tree);
-   virtual void     processNtuple();
-   virtual void     ntupleLoopCore();
-   virtual Bool_t   notify();
-   virtual void     show(Long64_t entry = -1);
+  DileptonEvents(
+      TString input_ntuple_file="default.root",
+      TString analysis_name="UnspecifiedAnalysis");
+  virtual ~DileptonEvents();
+  virtual Int_t  cut(Long64_t entry);
+  virtual Int_t  getEntry(Long64_t entry);
+  virtual Long64_t loadTree(Long64_t entry);
+  virtual void  init(TTree *tree);
+  virtual void  processNtuple();
+  virtual void  ntupleLoopCore();
+  virtual bool  notify();
+  virtual void  show(Long64_t entry = -1);
+  
+  TString input_ntuple_file_;
+  TString ouput_ntuple_file_;
+  TString analysis_name_;
+  
+  int n_hist_;
+  RooCategory* component_;
+  RooCategory* event_sign_;
+  RooCategory* event_species_;
+  RooDataSet* data_set_;
 };
 
 #endif

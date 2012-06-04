@@ -1,24 +1,44 @@
 #include "DileptonEvents.h"
 
-DileptonEvents::DileptonEvents(TTree *tree)
+DileptonEvents::DileptonEvents(
+    TString input_ntuple_file,
+    TString analysis_name)
+    : input_ntuple_file_(input_ntuple_file),
+      analysis_name_(analysis_name),
+      n_hist_(0),
+      data_set_(0)
 {
-  // If parameter tree is not specified (or zero), connect default file or
-  //     make a blank one.
-  if (tree == 0) {
+  event_sign_ = new RooCategory("event_sign","Event Sign");
+  event_sign_->defineType("pp",  1);
+  event_sign_->defineType("pn",  0);
+  event_sign_->defineType("nn", -1);
+
+  event_species_ = new RooCategory("event_species", "Event Species");
+  event_species_->defineType("error", 0);
+  event_species_->defineType("elel",  1);
+  event_species_->defineType("mumu",  2);
+  event_species_->defineType("elmu",  3);
+
+  component_ = new RooCategory("component", "Event Component");
+  component_->defineType("er", 0); // Error.
+  component_->defineType("bs", 1); // Signal B_s.
+  component_->defineType("bd", 2); // Signal B_d.
+  component_->defineType("cw", 3); // Correct-wrong.
+  component_->defineType("ww", 4); // Wrong-wrong.
+  component_->defineType("cn", 5); // Continuum.
+  
+  data_set_ = new RooDataSet("data_set", analysis_name_,
+      RooArgSet(*component_, *event_sign_, *event_species_));
+  
+  TFile *f = new TFile(input_ntuple_file_, "READ");
+  if (!f || !f->IsOpen()) {
     std::cout
-        << "Attempting to load default file: Adcab.GNMC.basf.root"
+        << "Error accessing root file. Creating dummy ntuple."
         << std::endl;
-    TFile *f = new TFile(
-        "/home/matt/research/belle/adcab/root/ntuples/Adcab.GNMC.basf.root",
-        "READ");
-    if (!f || !f->IsOpen()) {
-      std::cout
-          << "Error accessing root file. Creating dummy ntuple."
-          << std::endl;
-      f = new TFile("Adcab.GNMC.basf.root");
-    }
-    f->GetObject("h3", tree);
+    f = new TFile("default.root");
   }
+  TTree* tree = 0;
+  f->GetObject("h3", tree);
   init(tree);
 }
 
@@ -26,6 +46,10 @@ DileptonEvents::~DileptonEvents()
 {
   if (!fChain) return;
   delete fChain->GetCurrentFile();
+  delete data_set_;
+  delete component_;
+  delete event_species_;
+  delete event_sign_;
 }
 
 Int_t DileptonEvents::getEntry(Long64_t entry)
@@ -106,7 +130,7 @@ void DileptonEvents::init(TTree *tree)
   notify();
 }
 
-Bool_t DileptonEvents::notify()
+bool DileptonEvents::notify()
 {
   // The Notify() function is called when a new file is opened. This
   //   can be either for a new TTree in a TChain or when when a new TTree
@@ -114,7 +138,7 @@ Bool_t DileptonEvents::notify()
   //   changes to the generated code, but the routine can be extended by
   //   the user if needed. The return value is currently not used.
 
-   return kTRUE;
+   return true;
 }
 
 void DileptonEvents::show(Long64_t entry)
@@ -125,7 +149,7 @@ void DileptonEvents::show(Long64_t entry)
   fChain->Show(entry);
 }
 
-Int_t DileptonEvents::cut(Long64_t entry)
+int DileptonEvents::cut(Long64_t entry)
 {
   // This function may be called from Loop.
   // returns  1 if entry is accepted.
