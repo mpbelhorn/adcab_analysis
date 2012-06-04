@@ -11,12 +11,15 @@ int main(int argc, char *argv[])
   
   // Process ntuple: generate plots and dataset.
   Fit3D psum_loa_dz_fit(argv[1], argv[2],
-      "psum", 2.2, 5, "loa", -1, 1, "deltaz", -.5, .5);
+      "|p_{0}| + |p_{1}| (GeV/c)", 2.0, 5,
+      "Cos(#Theta_{ll})", -1, 1,
+      "#Delta z", -.5, .5);
   std::cout << "Passed init." << std::endl;
+  psum_loa_dz_fit.createDataSet(true);
   psum_loa_dz_fit.processNtuple();
   psum_loa_dz_fit.data_set_->Print();
   // Generate models.
-  
+  psum_loa_dz_fit.drawHistograms();
   
   // Fit data.
   

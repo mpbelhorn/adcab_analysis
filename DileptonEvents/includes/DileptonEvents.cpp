@@ -5,14 +5,13 @@ DileptonEvents::DileptonEvents(
     TString analysis_name)
     : input_ntuple_file_(input_ntuple_file),
       analysis_name_(analysis_name),
-      n_hist_(0),
       flag_output_a_dataset_(false)
 {
   // Define the data categories.
   event_sign_ = new RooCategory("event_sign","Event Sign");
-  event_sign_->defineType("pp",  1);
-  event_sign_->defineType("pn",  0);
   event_sign_->defineType("nn", -1);
+  event_sign_->defineType("pn",  0);
+  event_sign_->defineType("pp",  1);
 
   event_species_ = new RooCategory("event_species", "Event Species");
   event_species_->defineType("error", 0);
@@ -51,6 +50,11 @@ DileptonEvents::~DileptonEvents()
   delete component_;
   delete event_species_;
   delete event_sign_;
+}
+
+void DileptonEvents::createDataSet(const bool& yes_or_no)
+{
+  flag_output_a_dataset_ = yes_or_no;
 }
 
 void DileptonEvents::recreateDataSet(RooArgSet& variables)

@@ -5,6 +5,7 @@
 #include "RooRealVar.h"
 #include "RooCategory.h"
 #include "RooDataSet.h"
+#include <vector>
 
 class Fit3D : public DileptonEvents {
  public:
@@ -35,11 +36,18 @@ class Fit3D : public DileptonEvents {
       const double &min_bin_z, const double &max_bin_z, const int &num_bins_z);
   void fillDataSet(const int &component);
   void saveDataSet();
+  void fillHistograms(
+      const char& species,
+      const char& sign,
+      const int& component);
   void drawHistograms();
   
   double x_value_;
   double y_value_;
   double z_value_;
+  
+  // Species, sign, component, variable
+  vector<vector<vector<vector<TH1D> > > > histograms_;
   
   RooRealVar* x_variable_;
   RooRealVar* y_variable_;

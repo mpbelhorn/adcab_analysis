@@ -119,6 +119,7 @@ class DileptonEvents {
   virtual bool  notify();
   virtual void  show(Long64_t entry = -1);
   
+  void createDataSet(const bool& yes_or_no);
   void recreateDataSet(RooArgSet& variables);
   
   TString input_ntuple_file_;
@@ -126,7 +127,6 @@ class DileptonEvents {
   TString analysis_name_;
   bool flag_output_a_dataset_;
   
-  int n_hist_;
   RooCategory* component_;
   RooCategory* event_sign_;
   RooCategory* event_species_;
