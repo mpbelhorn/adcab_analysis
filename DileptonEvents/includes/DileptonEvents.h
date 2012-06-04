@@ -110,7 +110,7 @@ class DileptonEvents {
       TString input_ntuple_file="default.root",
       TString analysis_name="UnspecifiedAnalysis");
   virtual ~DileptonEvents();
-  virtual Int_t  cut(Long64_t entry);
+  virtual int  cut(Long64_t entry);
   virtual Int_t  getEntry(Long64_t entry);
   virtual Long64_t loadTree(Long64_t entry);
   virtual void  init(TTree *tree);
@@ -119,9 +119,12 @@ class DileptonEvents {
   virtual bool  notify();
   virtual void  show(Long64_t entry = -1);
   
+  void recreateDataSet(RooArgSet& variables);
+  
   TString input_ntuple_file_;
   TString ouput_ntuple_file_;
   TString analysis_name_;
+  bool flag_output_a_dataset_;
   
   int n_hist_;
   RooCategory* component_;

@@ -6,8 +6,9 @@ DileptonEvents::DileptonEvents(
     : input_ntuple_file_(input_ntuple_file),
       analysis_name_(analysis_name),
       n_hist_(0),
-      data_set_(0)
+      flag_output_a_dataset_(false)
 {
+  // Define the data categories.
   event_sign_ = new RooCategory("event_sign","Event Sign");
   event_sign_->defineType("pp",  1);
   event_sign_->defineType("pn",  0);
@@ -50,6 +51,16 @@ DileptonEvents::~DileptonEvents()
   delete component_;
   delete event_species_;
   delete event_sign_;
+}
+
+void DileptonEvents::recreateDataSet(RooArgSet& variables)
+{
+  RooArgSet columns(*component_, *event_sign_, *event_species_);
+  columns.add(variables);
+  if (data_set_) {
+    delete data_set_;
+  }
+  data_set_ = new RooDataSet("data_set", analysis_name_, columns);
 }
 
 Int_t DileptonEvents::getEntry(Long64_t entry)

@@ -10,7 +10,16 @@ class Fit3D : public DileptonEvents {
  public:
   Fit3D(
       TString input_ntuple_file="default.root",
-      TString analysis_name="UnspecifiedAnalysis");
+      TString analysis_name="UnspecifiedAnalysis",
+      TString x_axis_label = "x variable",
+      double min_x_bin_edge = 0,
+      double max_x_bin_edge = 1,
+      TString y_axis_label = "y variable",
+      double min_y_bin_edge = 0,
+      double max_y_bin_edge = 1,
+      TString z_axis_label = "z variable",
+      double min_z_bin_edge = 0,
+      double max_z_bin_edge = 1);
   ~Fit3D();
 
   void ntupleLoopCore();
@@ -24,12 +33,9 @@ class Fit3D : public DileptonEvents {
       const double &min_bin_y, const double &max_bin_y, const int &num_bins_y,
       const TString &z_axis_label,
       const double &min_bin_z, const double &max_bin_z, const int &num_bins_z);
-  void fillDataSet(
-      const double &x_var,
-      const double &y_var,
-      const double &z_var,
-      const int &component);
+  void fillDataSet(const int &component);
   void saveDataSet();
+  void drawHistograms();
   
   double x_value_;
   double y_value_;
