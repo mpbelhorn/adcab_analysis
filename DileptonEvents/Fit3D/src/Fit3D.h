@@ -7,15 +7,7 @@
 #include "RooDataSet.h"
 #include <vector>
 
-struct TaggedHistogram {
-  TString event_species;
-  TString event_sign;
-  TString component;
-  TString variable;
-  TH1F histogram;
-};
-
-typedef vector<TaggedHistogram> HistogramListOverVariables;
+typedef vector<TH1F> HistogramListOverVariables;
 typedef vector<HistogramListOverVariables> HistogramListOverComponents;
 typedef vector<HistogramListOverComponents> HistogramListOverEventSigns;
 typedef vector<HistogramListOverEventSigns> HistogramListOverEventSpecies;
@@ -62,7 +54,6 @@ class Fit3D : public DileptonEvents {
   RooRealVar* x_variable_;
   RooRealVar* y_variable_;
   RooRealVar* z_variable_;
-
 };
 
 #endif

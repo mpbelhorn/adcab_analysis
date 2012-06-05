@@ -35,75 +35,46 @@ Fit3D::Fit3D(
   std::cout << std::endl;
   
   // Construct the histograms.
-  RooCatType *component;
-  RooCatType *event_sign;
-  RooCatType *event_species;
-  TIterator* component_iterator = component_->typeIterator();
-  TIterator* event_sign_iterator = event_sign_->typeIterator();
-  TIterator* event_species_iterator = event_species_->typeIterator();
-  
-  event_species_iterator->Reset();
-  event_sign_iterator->Reset();
-  component_iterator->Reset();
   TString name;
   name.Clear();
   histograms_.clear();
-  while((event_species = (RooCatType*) event_species_iterator->Next())) {
-    TString species_string = event_species->GetName();
+
+  for (int i = 0; i < tags_.species_.size(); ++i) {
     HistogramListOverEventSigns event_sign_histograms;
-    while((event_sign = (RooCatType*) event_sign_iterator->Next())) {
-      TString sign_string = event_sign->GetName();
+    event_sign_histograms.clear();
+    for (int j = 0; j < tags_.signs_.size(); ++j) {
       HistogramListOverComponents component_histograms;
       component_histograms.clear();
-      while((component = (RooCatType*) component_iterator->Next())) {
+      for (int k = 0; k < tags_.components_.size(); ++k) {
         HistogramListOverVariables variable_histograms;
         variable_histograms.clear();
-        TString component_string = component->GetName();
-        name.Append(species_string);
+        name.Append(tags_.species_[i]);
         name.Append("_");
-        name.Append(sign_string);
+        name.Append(tags_.signs_[j]);
         name.Append("_");
-        name.Append(component_string);
-        
-        TaggedHistogram x;
-        TaggedHistogram y;
-        TaggedHistogram z;
-        
-        x.event_species = species_string;
-        x.event_sign = sign_string;
-        x.component = component_string;
-        x.variable = x_axis_label;
-        x.histogram = TH1F(name + "_x", name + "_x", 100, min_x_bin_edge, max_x_bin_edge);
-        variable_histograms.push_back(x);
-        y.event_species = species_string;
-        y.event_sign = sign_string;
-        y.component = component_string;
-        y.variable = y_axis_label;
-        y.histogram = TH1F(name + "_y", name + "_y", 100, min_y_bin_edge, max_y_bin_edge);
-        variable_histograms.push_back(y);
-        z.event_species = species_string;
-        z.event_sign = sign_string;
-        z.component = component_string;
-        z.variable = z_axis_label;
-        z.histogram = TH1F(name + "_z", name + "_z", 100, min_z_bin_edge, max_z_bin_edge);
-        variable_histograms.push_back(z);
-        
+        name.Append(tags_.components_[k]);
+        TH1F x_histogram(name + "_x", name + "_x",
+            100, min_x_bin_edge, max_x_bin_edge);
+        TH1F y_histogram(name + "_y", name + "_y",
+            100, min_y_bin_edge, max_y_bin_edge);
+        TH1F z_histogram(name + "_z", name + "_z",
+            100, min_z_bin_edge, max_z_bin_edge);
+        variable_histograms.push_back(x_histogram);
+        variable_histograms.push_back(y_histogram);
+        variable_histograms.push_back(z_histogram);
         component_histograms.push_back(variable_histograms);
         name.Clear();
       }
       event_sign_histograms.push_back(component_histograms);
-      component_iterator->Reset();
     }
     histograms_.push_back(event_sign_histograms);
-    event_sign_iterator->Reset();
   }
-  event_species_iterator->Reset();
 }
 
 
 Fit3D::~Fit3D()
 {
-  std::cout << "Starting destructor." << std::endl;
+  // std::cout << "Starting destructor." << std::endl;
   // TODO member pointers need to be deleted, but these lines give segfault.
   // delete x_variable_;
   // delete y_variable_;
@@ -150,47 +121,25 @@ void Fit3D::fillDataSet(const int &component)
 void Fit3D::fillHistograms(const int& component)
 {
   // Catch bad entries. Real data will have typ_true = 0.
-//  if (typ_tru == 0 || component == 0) {
-    // std::cout << "Bad entry found with species " << typ_tru
-    //           << " and component " << component << endl;
- // } else {
-      histograms_[typ_tru][evt_sign + 1][component][0].histogram.Fill(x_value_);
-      histograms_[typ_tru][evt_sign + 1][component][1].histogram.Fill(y_value_);
-      histograms_[typ_tru][evt_sign + 1][component][2].histogram.Fill(z_value_);
-  //}
+  histograms_[typ_tru][evt_sign + 1][component][0].Fill(x_value_);
+  histograms_[typ_tru][evt_sign + 1][component][1].Fill(y_value_);
+  histograms_[typ_tru][evt_sign + 1][component][2].Fill(z_value_);
 }
 
 void Fit3D::drawHistograms()
 {
-  HistogramListOverVariables::iterator variable_histograms;
-  HistogramListOverComponents::iterator component_histograms;
-  HistogramListOverEventSigns::iterator sign_histograms;
-  HistogramListOverEventSpecies::iterator histograms;
-  for (histograms = histograms_.begin();
-      histograms < histograms_.end(); histograms++) {
-    TString species_string = (*histograms).front().
-        front().front().event_species;
-    TCanvas canvas("canvas", species_string, 1200, 1200);
+  for (int i = 0; i < tags_.species_.size(); ++i) {
+    TCanvas canvas("canvas", tags_.species_[i], 1200, 1200);
     canvas.Divide(3, 3);
     int canvas_column(0);
-    for (sign_histograms = (*histograms).begin();
-        sign_histograms < (*histograms).end(); sign_histograms++) {
-      canvas_column++;
-      int component_number = 0;
+    for (int j = 0; j < tags_.signs_.size(); ++j) {
       double greatest_x_bin_global(0);
       double greatest_y_bin_global(0);
       double greatest_z_bin_global(0);
-      for (component_histograms = (*sign_histograms).begin();
-          component_histograms < (*sign_histograms).end();
-          component_histograms++) {
-        TString component_string = (*component_histograms)[0].
-            component;
-        double greatest_x_bin_local = (*component_histograms)[0].
-            histogram.GetMaximum();
-        double greatest_y_bin_local = (*component_histograms)[1].
-            histogram.GetMaximum();
-        double greatest_z_bin_local = (*component_histograms)[2].
-            histogram.GetMaximum();
+      for (int k = 0; k < tags_.components_.size(); ++k) {
+        double greatest_x_bin_local = histograms_[i][j][k][0].GetMaximum();
+        double greatest_y_bin_local = histograms_[i][j][k][1].GetMaximum();
+        double greatest_z_bin_local = histograms_[i][j][k][2].GetMaximum();
         if (greatest_x_bin_local > greatest_x_bin_global) {
           greatest_x_bin_global = greatest_x_bin_local;
         }
@@ -200,26 +149,23 @@ void Fit3D::drawHistograms()
         if (greatest_z_bin_local > greatest_z_bin_global) {
           greatest_z_bin_global = greatest_z_bin_local;
         }
+        histograms_[i][j][k][0].SetLineColor(tags_.colors_[k]);
+        histograms_[i][j][k][1].SetLineColor(tags_.colors_[k]);
+        histograms_[i][j][k][2].SetLineColor(tags_.colors_[k]);
       }
-      for (component_histograms = (*sign_histograms).begin();
-          component_histograms < (*sign_histograms).end();
-          component_histograms++) {
-        component_number++;
-        canvas.cd(canvas_column + 0);
-        TString options = ((component_number == 1) ? "e" : "e same");
-        (*component_histograms)[0].histogram.
-            SetMaximum(1.1 * greatest_x_bin_global);
-        (*component_histograms)[0].histogram.Draw(options);
-        canvas.cd(canvas_column + 3);
-        (*component_histograms)[1].histogram.
-            SetMaximum(1.1 * greatest_y_bin_global);
-        (*component_histograms)[1].histogram.Draw(options);
-        canvas.cd(canvas_column + 6);
-        (*component_histograms)[2].histogram.
-            SetMaximum(1.1 * greatest_z_bin_global);
-        (*component_histograms)[2].histogram.Draw(options);
+      for (int k = 0; k < tags_.components_.size(); ++k) {
+        canvas.cd(j + 1 + 0);
+        TString options = ((k == 0) ? "e" : "e same");
+        histograms_[i][j][k][0].SetMaximum(1.1 * greatest_x_bin_global);
+        histograms_[i][j][k][0].Draw(options);
+        canvas.cd(j + 1 + 3);
+        histograms_[i][j][k][1].SetMaximum(1.1 * greatest_y_bin_global);
+        histograms_[i][j][k][1].Draw(options);
+        canvas.cd(j + 1 + 6);
+        histograms_[i][j][k][2].SetMaximum(1.1 * greatest_z_bin_global);
+        histograms_[i][j][k][2].Draw(options);
       }
     }
-    canvas.Print(species_string + ".eps");
+    canvas.Print(tags_.species_[i] + ".eps");
   }
 }

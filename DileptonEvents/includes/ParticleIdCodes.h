@@ -51,5 +51,4 @@ struct PythiaPidCodes {
   static const int Bs0_star     = 533;
 };
 
-
 #endif

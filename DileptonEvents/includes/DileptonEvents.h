@@ -10,6 +10,48 @@
 #include "RooCategory.h"
 #include "RooDataSet.h"
 #include <iostream>
+#include <vector>
+
+class EventTags {
+ public:
+  EventTags()
+  {
+    species_.clear();
+    signs_.clear();
+    components_.clear();
+    colors_.clear();
+    
+    species_.push_back("er");
+    species_.push_back("elel");
+    species_.push_back("elmu");
+    species_.push_back("mumu");
+    
+    signs_.push_back("nn");
+    signs_.push_back("pn");
+    signs_.push_back("pp");
+    
+    components_.push_back("er");
+    components_.push_back("bs");
+    components_.push_back("bd");
+    components_.push_back("cw");
+    components_.push_back("ww");
+    components_.push_back("cn");
+    
+     colors_.push_back(1);
+     colors_.push_back(91);
+     colors_.push_back(2);
+     colors_.push_back(8);
+     colors_.push_back(4);
+     colors_.push_back(7);
+    
+  }
+  ~EventTags() {}
+  
+  vector<TString> species_;
+  vector<TString> signs_;
+  vector<TString> components_;
+  vector<int> colors_;
+};
 
 class DileptonEvents {
  public :
@@ -131,6 +173,9 @@ class DileptonEvents {
   RooCategory* event_sign_;
   RooCategory* event_species_;
   RooDataSet* data_set_;
+  
+  const EventTags tags_;
+  
 };
 
 #endif

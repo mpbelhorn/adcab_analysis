@@ -30,6 +30,8 @@ DileptonEvents::DileptonEvents(
   data_set_ = new RooDataSet("data_set", analysis_name_,
       RooArgSet(*component_, *event_sign_, *event_species_));
   
+  tags_;
+  
   TFile *f = new TFile(input_ntuple_file_, "READ");
   if (!f || !f->IsOpen()) {
     std::cout
