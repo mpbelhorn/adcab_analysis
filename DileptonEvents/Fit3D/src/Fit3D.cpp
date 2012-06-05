@@ -34,9 +34,6 @@ Fit3D::Fit3D(
   data_set_->printArgs(cout);
   std::cout << std::endl;
   
-  component_->printMultiline(std::cout, 2);
-  std::cout << std::endl;
-  
   // Construct the histograms.
   RooCatType *component;
   RooCatType *event_sign;
@@ -52,28 +49,45 @@ Fit3D::Fit3D(
   name.Clear();
   histograms_.clear();
   while((event_species = (RooCatType*) event_species_iterator->Next())) {
-    vector<vector<vector<TH1D> > > event_sign_histograms;
+    TString species_string = event_species->GetName();
+    HistogramListOverEventSigns event_sign_histograms;
     while((event_sign = (RooCatType*) event_sign_iterator->Next())) {
-      vector<vector<TH1D> > component_histograms;
+      TString sign_string = event_sign->GetName();
+      HistogramListOverComponents component_histograms;
       component_histograms.clear();
       while((component = (RooCatType*) component_iterator->Next())) {
-        vector<TH1D> variable_histograms;
+        HistogramListOverVariables variable_histograms;
         variable_histograms.clear();
-        name.Append(event_species->GetName());
+        TString component_string = component->GetName();
+        name.Append(species_string);
         name.Append("_");
-        name.Append(event_sign->GetName());
+        name.Append(sign_string);
         name.Append("_");
-        name.Append(component->GetName());
-        // std::cout << name << std::endl;
-        variable_histograms.push_back(
-            TH1D(name + "_x", name + "_x", 100, min_x_bin_edge, max_x_bin_edge)
-        );
-        variable_histograms.push_back(
-            TH1D(name + "_y", name + "_y", 100, min_y_bin_edge, max_y_bin_edge)
-        );
-        variable_histograms.push_back(
-            TH1D(name + "_z", name + "_z", 100, min_z_bin_edge, max_z_bin_edge)
-        );
+        name.Append(component_string);
+        
+        TaggedHistogram x;
+        TaggedHistogram y;
+        TaggedHistogram z;
+        
+        x.event_species = species_string;
+        x.event_sign = sign_string;
+        x.component = component_string;
+        x.variable = x_axis_label;
+        x.histogram = TH1F(name + "_x", name + "_x", 100, min_x_bin_edge, max_x_bin_edge);
+        variable_histograms.push_back(x);
+        y.event_species = species_string;
+        y.event_sign = sign_string;
+        y.component = component_string;
+        y.variable = y_axis_label;
+        y.histogram = TH1F(name + "_y", name + "_y", 100, min_y_bin_edge, max_y_bin_edge);
+        variable_histograms.push_back(y);
+        z.event_species = species_string;
+        z.event_sign = sign_string;
+        z.component = component_string;
+        z.variable = z_axis_label;
+        z.histogram = TH1F(name + "_z", name + "_z", 100, min_z_bin_edge, max_z_bin_edge);
+        variable_histograms.push_back(z);
+        
         component_histograms.push_back(variable_histograms);
         name.Clear();
       }
@@ -108,7 +122,7 @@ void Fit3D::ntupleLoopCore()
   
   AnalysisSelectors cuts(*this);
   fillDataSet(cuts.signal_type());
-  fillHistograms(cuts.tru.type(), cuts.event_sign(), cuts.signal_type());
+  fillHistograms(cuts.signal_type());
   
 }
 
@@ -133,39 +147,77 @@ void Fit3D::fillDataSet(const int &component)
   }
 }
 
-void Fit3D::fillHistograms(
-      const char& species,
-      const char& sign,
-      const int& component)
+void Fit3D::fillHistograms(const int& component)
 {
-  // Catch bad entries.
-  if (species == 0 || component == 0) {
-    std::cout << "Bad entry found with species " << species
-              << " and component " << component << endl;
-  } else {
-    double values[] = {x_value_, y_value_, z_value_};
-    for (int variable = 0; variable < 3; variable++) {
-      histograms_[0][sign + 1][0][variable].Fill(values[variable]);
-      histograms_[species][sign + 1][0][variable].Fill(values[variable]);
-      histograms_[species][sign + 1][component][variable].Fill(values[variable]);
-    }
-  }
+  // Catch bad entries. Real data will have typ_true = 0.
+//  if (typ_tru == 0 || component == 0) {
+    // std::cout << "Bad entry found with species " << typ_tru
+    //           << " and component " << component << endl;
+ // } else {
+      histograms_[typ_tru][evt_sign + 1][component][0].histogram.Fill(x_value_);
+      histograms_[typ_tru][evt_sign + 1][component][1].histogram.Fill(y_value_);
+      histograms_[typ_tru][evt_sign + 1][component][2].histogram.Fill(z_value_);
+  //}
 }
 
 void Fit3D::drawHistograms()
 {
-  // For each species: (x4)
-    // For each event sign: (x3)
-      // For each component: (x6+1)
-        // For each variable: (x3)
-          // Create a histogram.
-        // For each combination of two variables: (x3)
-          // Create a 2D histogram.
-  TH1* hist = data_set_->createHistogram("name", *x_variable_, RooFit::AutoBinning(100, 1));
-  
-  TCanvas canvas("canvas", "Data Components", 1200, 1600);
-  canvas.Divide(1, 2);
-  canvas.cd(1);
-  hist->Draw();
-  canvas.Print("test.eps");
+  HistogramListOverVariables::iterator variable_histograms;
+  HistogramListOverComponents::iterator component_histograms;
+  HistogramListOverEventSigns::iterator sign_histograms;
+  HistogramListOverEventSpecies::iterator histograms;
+  for (histograms = histograms_.begin();
+      histograms < histograms_.end(); histograms++) {
+    TString species_string = (*histograms).front().
+        front().front().event_species;
+    TCanvas canvas("canvas", species_string, 1200, 1200);
+    canvas.Divide(3, 3);
+    int canvas_column(0);
+    for (sign_histograms = (*histograms).begin();
+        sign_histograms < (*histograms).end(); sign_histograms++) {
+      canvas_column++;
+      int component_number = 0;
+      double greatest_x_bin_global(0);
+      double greatest_y_bin_global(0);
+      double greatest_z_bin_global(0);
+      for (component_histograms = (*sign_histograms).begin();
+          component_histograms < (*sign_histograms).end();
+          component_histograms++) {
+        double greatest_x_bin_local = (*component_histograms)[0].
+            histogram.GetMaximumStored();
+        double greatest_y_bin_local = (*component_histograms)[1].
+            histogram.GetMaximumStored();
+        double greatest_z_bin_local = (*component_histograms)[2].
+            histogram.GetMaximumStored();
+        if (greatest_x_bin_local > greatest_x_bin_global) {
+          greatest_x_bin_global = greatest_x_bin_local;
+        }
+        if (greatest_y_bin_local > greatest_y_bin_global) {
+          greatest_y_bin_global = greatest_y_bin_local;
+        }
+        if (greatest_z_bin_local > greatest_z_bin_global) {
+          greatest_z_bin_global = greatest_z_bin_local;
+        }
+      }
+      for (component_histograms = (*sign_histograms).begin();
+          component_histograms < (*sign_histograms).end();
+          component_histograms++) {
+        component_number++;
+        canvas.cd(canvas_column + 0);
+        TString options = ((component_number == 1) ? "e" : "e same");
+        (*component_histograms)[0].histogram.
+            SetMaximum(1.1 * greatest_x_bin_global);
+        (*component_histograms)[0].histogram.Draw(options);
+        canvas.cd(canvas_column + 3);
+        (*component_histograms)[1].histogram.
+            SetMaximum(1.1 * greatest_y_bin_global);
+        (*component_histograms)[1].histogram.Draw(options);
+        canvas.cd(canvas_column + 6);
+        (*component_histograms)[2].histogram.
+            SetMaximum(1.1 * greatest_z_bin_global);
+        (*component_histograms)[2].histogram.Draw(options);
+      }
+    }
+    canvas.Print(species_string + ".eps");
+  }
 }
