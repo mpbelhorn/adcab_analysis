@@ -183,12 +183,14 @@ void Fit3D::drawHistograms()
       for (component_histograms = (*sign_histograms).begin();
           component_histograms < (*sign_histograms).end();
           component_histograms++) {
+        TString component_string = (*component_histograms)[0].
+            component;
         double greatest_x_bin_local = (*component_histograms)[0].
-            histogram.GetMaximumStored();
+            histogram.GetMaximum();
         double greatest_y_bin_local = (*component_histograms)[1].
-            histogram.GetMaximumStored();
+            histogram.GetMaximum();
         double greatest_z_bin_local = (*component_histograms)[2].
-            histogram.GetMaximumStored();
+            histogram.GetMaximum();
         if (greatest_x_bin_local > greatest_x_bin_global) {
           greatest_x_bin_global = greatest_x_bin_local;
         }

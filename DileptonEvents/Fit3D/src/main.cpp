@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
   Fit3D psum_loa_dz_fit(argv[1], argv[2],
       "|p_{0}| + |p_{1}| (GeV/c)", 2.0, 5,
       "Cos(#Theta_{ll})", -1, 1,
-      "#Delta z", -.5, .5);
+      "#Delta z", -.2, .2);
   std::cout << "Passed init." << std::endl;
   psum_loa_dz_fit.createDataSet(true);
   psum_loa_dz_fit.processNtuple();
