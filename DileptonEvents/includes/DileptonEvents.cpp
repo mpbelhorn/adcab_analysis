@@ -7,6 +7,8 @@ DileptonEvents::DileptonEvents(
       analysis_name_(analysis_name),
       flag_output_a_dataset_(false)
 {
+  tags_;
+  // TODO - Define the categories in terms of the EventTags class contents.
   // Define the data categories.
   event_sign_ = new RooCategory("event_sign","Event Sign");
   event_sign_->defineType("nn", -1);
@@ -30,8 +32,6 @@ DileptonEvents::DileptonEvents(
   data_set_ = new RooDataSet("data_set", analysis_name_,
       RooArgSet(*component_, *event_sign_, *event_species_));
   
-  tags_;
-  
   TFile *f = new TFile(input_ntuple_file_, "READ");
   if (!f || !f->IsOpen()) {
     std::cout
@@ -54,7 +54,7 @@ DileptonEvents::~DileptonEvents()
   delete event_sign_;
 }
 
-void DileptonEvents::createDataSet(const bool& yes_or_no)
+void DileptonEvents::setCreateDataSet(const bool& yes_or_no)
 {
   flag_output_a_dataset_ = yes_or_no;
 }
@@ -176,6 +176,7 @@ int DileptonEvents::cut(Long64_t entry)
 
 void DileptonEvents::processNtuple()
 {
+  std::cout << "Processing ntuple..." << std::endl;
   // This is the loop skeleton where:
   //     jth_entry is the global entry number in the chain
   //     ith_entry is the entry number in the current Tree
@@ -205,6 +206,7 @@ void DileptonEvents::processNtuple()
       // if (Cut(ith_entry) < 0) continue;
       ntupleLoopCore();
    }
+   std::cout << "Finished!" << std::endl;
 }
 
 void DileptonEvents::ntupleLoopCore()
@@ -212,4 +214,17 @@ void DileptonEvents::ntupleLoopCore()
   // Intentionally blank.
   // This is the set of commands run on each entry in the Ntuple. It is
   //   intended that this is overridden by derived classes.
+}
+
+void DileptonEvents::saveDataSet(const TString& filename)
+{
+  if (flag_output_a_dataset_) {
+    std::cout << "Saving processed data." << std::endl;
+    TFile data_file(filename, "RECREATE");
+    
+    RooWorkspace workspace("workspace", analysis_name_);
+    workspace.import(*data_set_);
+    workspace.Write();
+    data_file.Close();
+  }
 }

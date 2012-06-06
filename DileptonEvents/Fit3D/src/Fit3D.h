@@ -40,9 +40,10 @@ class Fit3D : public DileptonEvents {
       const TString &z_axis_label,
       const double &min_bin_z, const double &max_bin_z, const int &num_bins_z);
   void fillDataSet(const int &component);
-  void saveDataSet();
   void fillHistograms(const int& component);
   void drawHistograms();
+  void saveHistograms(const TString& filename = "histograms.root");
+  void generateModels();
   
   float x_value_;
   float y_value_;

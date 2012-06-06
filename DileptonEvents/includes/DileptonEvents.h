@@ -9,6 +9,7 @@
 #include <TCanvas.h>
 #include "RooCategory.h"
 #include "RooDataSet.h"
+#include "RooWorkspace.h"
 #include <iostream>
 #include <vector>
 
@@ -161,11 +162,11 @@ class DileptonEvents {
   virtual bool  notify();
   virtual void  show(Long64_t entry = -1);
   
-  void createDataSet(const bool& yes_or_no);
+  void setCreateDataSet(const bool& yes_or_no);
   void recreateDataSet(RooArgSet& variables);
+  void saveDataSet(const TString& filename = "data.root");
   
   TString input_ntuple_file_;
-  TString ouput_ntuple_file_;
   TString analysis_name_;
   bool flag_output_a_dataset_;
   

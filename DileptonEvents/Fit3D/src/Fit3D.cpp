@@ -1,6 +1,9 @@
 #include "Fit3D.h"
 #include "EventSelectors.h"
 #include <iostream>
+#include "TCut.h"
+#include "RooDataHist.h"
+#include "RooHistPdf.h"
 
 
 Fit3D::Fit3D(
@@ -168,4 +171,98 @@ void Fit3D::drawHistograms()
     }
     canvas.Print(tags_.species_[i] + ".eps");
   }
+}
+
+void Fit3D::saveHistograms(const TString& filename)
+{
+  TFile histogram_file(filename, "RECREATE");
+  for (int i = 0; i < tags_.species_.size(); ++i) {
+    for (int j = 0; j < tags_.signs_.size(); ++j) {
+      for (int k = 0; k < tags_.components_.size(); ++k) {
+        for (int l = 0; l < 3; ++l) {
+          histograms_[i][j][k][l].Write();
+        }
+      }
+    }
+  }
+  histogram_file.Close();
+}
+
+void Fit3D::generateModels()
+{
+  std::cout << "Generating models..." << endl;
+  TCut pp_events("event_sign == event_sign::pp");
+  TCut pn_events("event_sign == event_sign::pn");
+  TCut nn_events("event_sign == event_sign::nn");
+  TCut ss_events = nn_events || pp_events;
+  TCut bs_events("component == component::bs");
+  TCut bd_events("component == component::bd");
+  TCut cc_events = bs_events || bd_events;
+  TCut cw_events("component == component::cw");
+  TCut ww_events("component == component::ww");
+  TCut cn_events("component == component::cn");
+
+  // Reduce data to components.
+  RooDataSet* cc_pp_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cc_events && pp_events));
+  RooDataSet* cc_nn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cc_events && nn_events));
+  RooDataSet* cc_pn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cc_events && pn_events));
+  RooDataSet* cw_pp_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cw_events && pp_events));
+  RooDataSet* cw_nn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cw_events && nn_events));
+  RooDataSet* cw_pn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cw_events && pn_events));
+  RooDataSet* ww_pp_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(ww_events && pp_events));
+  RooDataSet* ww_nn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(ww_events && nn_events));
+  RooDataSet* ww_pn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(ww_events && pn_events));
+  RooDataSet* cn_pp_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cn_events && pp_events));
+  RooDataSet* cn_nn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cn_events && nn_events));
+  RooDataSet* cn_pn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cn_events && pn_events));
+
+  RooArgList observables(*x_variable_, *y_variable_, *z_variable_);
+  RooDataHist cc_pp_binned_data("cc_pp_binned_data", "cc_pp_binned_data",
+      observables, *cc_pp_data);
+  RooDataHist cw_pp_binned_data("cw_pp_binned_data", "cw_pp_binned_data",
+      observables, *cw_pp_data);
+  RooDataHist ww_pp_binned_data("ww_pp_binned_data", "ww_pp_binned_data",
+      observables, *ww_pp_data);
+  RooDataHist cn_pp_binned_data("cn_pp_binned_data", "cn_pp_binned_data",
+      observables, *cn_pp_data);
+  RooDataHist cc_nn_binned_data("cc_nn_binned_data", "cc_nn_binned_data",
+      observables, *cc_nn_data);
+  RooDataHist cw_nn_binned_data("cw_nn_binned_data", "cw_nn_binned_data",
+      observables, *cw_nn_data);
+  RooDataHist ww_nn_binned_data("ww_nn_binned_data", "ww_nn_binned_data",
+      observables, *ww_nn_data);
+  RooDataHist cn_nn_binned_data("cn_nn_binned_data", "cn_nn_binned_data",
+      observables, *cn_nn_data);
+
+  int interpolation_order = 2;
+  RooHistPdf cc_pp_pdf("cc_pp_pdf", "cc_pp_pdf",
+      observables, cc_pp_binned_data, interpolation_order);
+  RooHistPdf cw_pp_pdf("cw_pp_pdf", "cw_pp_pdf",
+      observables, cw_pp_binned_data, interpolation_order);
+  RooHistPdf ww_pp_pdf("ww_pp_pdf", "ww_pp_pdf",
+      observables, ww_pp_binned_data, interpolation_order);
+  RooHistPdf cn_pp_pdf("cn_pp_pdf", "cn_pp_pdf",
+      observables, cn_pp_binned_data, interpolation_order);
+  RooHistPdf cc_nn_pdf("cc_nn_pdf", "cc_nn_pdf",
+      observables, cc_nn_binned_data, interpolation_order);
+  RooHistPdf cw_nn_pdf("cw_nn_pdf", "cw_nn_pdf",
+      observables, cw_nn_binned_data, interpolation_order);
+  RooHistPdf ww_nn_pdf("ww_nn_pdf", "ww_nn_pdf",
+      observables, ww_nn_binned_data, interpolation_order);
+  RooHistPdf cn_nn_pdf("cn_nn_pdf", "cn_nn_pdf",
+      observables, cn_nn_binned_data, interpolation_order);
+  
+  std::cout << "Finished!" << endl;
 }

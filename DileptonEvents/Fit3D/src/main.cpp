@@ -14,14 +14,21 @@ int main(int argc, char *argv[])
       "|p_{0}| + |p_{1}| (GeV/c)", 2.0, 5,
       "Cos(#Theta_{ll})", -1, 1,
       "#Delta z", -.2, .2);
-  std::cout << "Passed init." << std::endl;
-  psum_loa_dz_fit.createDataSet(true);
+
+  // Process raw data.
+  psum_loa_dz_fit.setCreateDataSet(true);
   psum_loa_dz_fit.processNtuple();
-  psum_loa_dz_fit.data_set_->Print();
-  // Generate models.
+
+  // Save processed data.
   psum_loa_dz_fit.drawHistograms();
+  psum_loa_dz_fit.saveHistograms();
+  psum_loa_dz_fit.saveDataSet();
+  
+  // Generate models.
+  psum_loa_dz_fit.generateModels();
   
   // Fit data.
+  
   
   return 0;
   
