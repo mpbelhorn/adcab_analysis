@@ -349,8 +349,8 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   pp_fit_results->Print("v");
   nn_fit_results->Print("v");
   
-  plotFitAccuracy(*pp_data, *pp_fit_results);
-  plotFitAccuracy(*nn_data, *nn_fit_results);
+  plotFitAccuracy(pp_data, *pp_fit_results);
+  plotFitAccuracy(nn_data, *nn_fit_results);
   
 }
 
