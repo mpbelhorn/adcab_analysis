@@ -311,6 +311,9 @@ void Fit3D::generateModels()
 void Fit3D::fitData(const TString& filename, const TString& data_set)
 {
 
+  RooMsgService::instance().getStream(0).removeTopic(RooFit::Minimization);
+  RooMsgService::instance().getStream(1).removeTopic(RooFit::Minimization);
+  
   TFile models_file("models.root", "READ");
   RooWorkspace* model_space = (RooWorkspace*) models_file.Get("model_space");
   
@@ -325,9 +328,9 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   std::cout << "Generating data sets for fit." << std::endl;
   
   RooDataSet* pp_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(pp_events_cut_));
+      RooFit::Cut(pp_events_cut_), RooFit::Cut("event_species == event_species::elel"));
   RooDataSet* nn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(nn_events_cut_));
+      RooFit::Cut(nn_events_cut_), RooFit::Cut("event_species == event_species::elel"));
     
   std::cout << "Starting the fit." << std::endl;
   
