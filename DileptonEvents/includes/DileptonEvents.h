@@ -7,6 +7,7 @@
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
+#include "TCut.h"
 #include "RooCategory.h"
 #include "RooDataSet.h"
 #include "RooWorkspace.h"
@@ -161,6 +162,15 @@ class DileptonEvents {
   virtual void  ntupleLoopCore();
   virtual bool  notify();
   virtual void  show(Long64_t entry = -1);
+  
+  TCut pp_events_cut_;
+  TCut pn_events_cut_;
+  TCut nn_events_cut_;
+  TCut bs_events_cut_;
+  TCut bd_events_cut_;
+  TCut cw_events_cut_;
+  TCut ww_events_cut_;
+  TCut cn_events_cut_;
   
   void setCreateDataSet(const bool& yes_or_no);
   void recreateDataSet(RooArgSet& variables);

@@ -5,6 +5,10 @@
 #include "RooRealVar.h"
 #include "RooCategory.h"
 #include "RooDataSet.h"
+#include "RooHistPdf.h"
+#include "RooAddPdf.h"
+#include "RooFitResult.h"
+#include "TGraphAsymmErrors.h"
 #include <vector>
 
 typedef vector<TH1F> HistogramListOverVariables;
@@ -44,6 +48,12 @@ class Fit3D : public DileptonEvents {
   void drawHistograms();
   void saveHistograms(const TString& filename = "histograms.root");
   void generateModels();
+  void fitData(
+      const TString& filename = "data.root",
+      const TString& data_set = "data_set");
+  void plotFitAccuracy(
+      const RooDataSet& mc_data,
+      const RooFitResult& fit);
   
   float x_value_;
   float y_value_;
@@ -55,6 +65,7 @@ class Fit3D : public DileptonEvents {
   RooRealVar* x_variable_;
   RooRealVar* y_variable_;
   RooRealVar* z_variable_;
+  
 };
 
 #endif

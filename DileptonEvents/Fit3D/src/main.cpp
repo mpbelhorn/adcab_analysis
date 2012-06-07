@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
   psum_loa_dz_fit.generateModels();
   
   // Fit data.
+  psum_loa_dz_fit.fitData();
   
   
   return 0;
-  
 }

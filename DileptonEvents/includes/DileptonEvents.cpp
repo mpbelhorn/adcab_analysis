@@ -10,6 +10,15 @@ DileptonEvents::DileptonEvents(
   tags_;
   // TODO - Define the categories in terms of the EventTags class contents.
   // Define the data categories.
+  pp_events_cut_ = TCut("event_sign == event_sign::pp");
+  pn_events_cut_ = TCut("event_sign == event_sign::pn");
+  nn_events_cut_ = TCut("event_sign == event_sign::nn");
+  bs_events_cut_ = TCut("component == component::bs");
+  bd_events_cut_ = TCut("component == component::bd");
+  cw_events_cut_ = TCut("component == component::cw");
+  ww_events_cut_ = TCut("component == component::ww");
+  cn_events_cut_ = TCut("component == component::cn");
+  
   event_sign_ = new RooCategory("event_sign","Event Sign");
   event_sign_->defineType("nn", -1);
   event_sign_->defineType("pn",  0);
