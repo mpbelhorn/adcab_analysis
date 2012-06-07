@@ -327,22 +327,20 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   
   std::cout << "Generating data sets for fit." << std::endl;
   
-  RooDataSet* pp_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(pp_events_cut_), RooFit::Cut("event_species == event_species::elel"));
-  RooDataSet* nn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(nn_events_cut_), RooFit::Cut("event_species == event_species::elel"));
+  RooDataSet& pp_data = *((RooDataSet*) data_set_->reduce("(event_sign == event_sign::pp)"));
+  RooDataSet& nn_data = *((RooDataSet*) data_set_->reduce("(event_sign == event_sign::nn)"));
     
   std::cout << "Starting the fit." << std::endl;
   
   RooFitResult* pp_fit_results = pp_model->fitTo(
-      *pp_data,
+      pp_data,
       RooFit::Minos(true),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
       RooFit::Save(true));
   
   RooFitResult* nn_fit_results = nn_model->fitTo(
-      *nn_data,
+      nn_data,
       RooFit::Minos(true),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
