@@ -195,76 +195,127 @@ void Fit3D::generateModels()
       RooFit::Cut(bs_events_cut_ && pp_events_cut_));
   RooDataSet* bd_pp_data = (RooDataSet*) data_set_->reduce(
       RooFit::Cut(bd_events_cut_ && pp_events_cut_));
+  RooDataSet* cw_pp_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cw_events_cut_ && pp_events_cut_));
+  RooDataSet* ww_pp_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(ww_events_cut_ && pp_events_cut_));
+  RooDataSet* cn_pp_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cn_events_cut_ && pp_events_cut_));
+  
+  /*
+  RooDataSet* bs_pn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(bs_events_cut_ && pn_events_cut_));
+  RooDataSet* bd_pn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(bd_events_cut_ && pn_events_cut_));
+  RooDataSet* cw_pn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cw_events_cut_ && pn_events_cut_));
+  RooDataSet* ww_pn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(ww_events_cut_ && pn_events_cut_));
+  RooDataSet* cn_pn_data = (RooDataSet*) data_set_->reduce(
+      RooFit::Cut(cn_events_cut_ && pn_events_cut_));
+  */
+  
   RooDataSet* bs_nn_data = (RooDataSet*) data_set_->reduce(
       RooFit::Cut(bs_events_cut_ && nn_events_cut_));
   RooDataSet* bd_nn_data = (RooDataSet*) data_set_->reduce(
       RooFit::Cut(bd_events_cut_ && nn_events_cut_));
-  // RooDataSet* bs_pn_data = (RooDataSet*) data_set_->reduce(
-  //     RooFit::Cut(bs_events_cut_ && pn_events_cut_));
-  // RooDataSet* bd_pn_data = (RooDataSet*) data_set_->reduce(
-  //     RooFit::Cut(bd_events_cut_ && pn_events_cut_));
-  RooDataSet* cw_pp_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(cw_events_cut_ && pp_events_cut_));
   RooDataSet* cw_nn_data = (RooDataSet*) data_set_->reduce(
       RooFit::Cut(cw_events_cut_ && nn_events_cut_));
-  // RooDataSet* cw_pn_data = (RooDataSet*) data_set_->reduce(
-  //     RooFit::Cut(cw_events_cut_ && pn_events_cut_));
-  RooDataSet* ww_pp_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(ww_events_cut_ && pp_events_cut_));
   RooDataSet* ww_nn_data = (RooDataSet*) data_set_->reduce(
       RooFit::Cut(ww_events_cut_ && nn_events_cut_));
-  // RooDataSet* ww_pn_data = (RooDataSet*) data_set_->reduce(
-  //     RooFit::Cut(ww_events_cut_ && pn_events_cut_));
-  RooDataSet* cn_pp_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(cn_events_cut_ && pp_events_cut_));
   RooDataSet* cn_nn_data = (RooDataSet*) data_set_->reduce(
       RooFit::Cut(cn_events_cut_ && nn_events_cut_));
-  // RooDataSet* cn_pn_data = (RooDataSet*) data_set_->reduce(
-  //     RooFit::Cut(cn_events_cut_ && pn_events_cut_));
 
   RooArgList observables(*x_variable_, *y_variable_, *z_variable_);
-  RooDataHist* bs_pp_binned_data = new RooDataHist("bs_pp_binned_data", "bs_pp_binned_data",
+  RooDataHist bs_pp_binned_data("bs_pp_binned_data", "bs_pp_binned_data",
       observables, *bs_pp_data);
-  RooDataHist* bd_pp_binned_data = new RooDataHist("bd_pp_binned_data", "bd_pp_binned_data",
+  RooDataHist bd_pp_binned_data("bd_pp_binned_data", "bd_pp_binned_data",
       observables, *bd_pp_data);
-  RooDataHist* cw_pp_binned_data = new RooDataHist("cw_pp_binned_data", "cw_pp_binned_data",
+  RooDataHist cw_pp_binned_data("cw_pp_binned_data", "cw_pp_binned_data",
       observables, *cw_pp_data);
-  RooDataHist* ww_pp_binned_data = new RooDataHist("ww_pp_binned_data", "ww_pp_binned_data",
+  RooDataHist ww_pp_binned_data("ww_pp_binned_data", "ww_pp_binned_data",
       observables, *ww_pp_data);
-  RooDataHist* cn_pp_binned_data = new RooDataHist("cn_pp_binned_data", "cn_pp_binned_data",
+  RooDataHist cn_pp_binned_data("cn_pp_binned_data", "cn_pp_binned_data",
       observables, *cn_pp_data);
-  RooDataHist* bs_nn_binned_data = new RooDataHist("bs_nn_binned_data", "bs_nn_binned_data",
+  RooDataHist bs_nn_binned_data("bs_nn_binned_data", "bs_nn_binned_data",
       observables, *bs_nn_data);
-  RooDataHist* bd_nn_binned_data = new RooDataHist("bd_nn_binned_data", "bd_nn_binned_data",
+  RooDataHist bd_nn_binned_data("bd_nn_binned_data", "bd_nn_binned_data",
       observables, *bd_nn_data);
-  RooDataHist* cw_nn_binned_data = new RooDataHist("cw_nn_binned_data", "cw_nn_binned_data",
+  RooDataHist cw_nn_binned_data("cw_nn_binned_data", "cw_nn_binned_data",
       observables, *cw_nn_data);
-  RooDataHist* ww_nn_binned_data = new RooDataHist("ww_nn_binned_data", "ww_nn_binned_data",
+  RooDataHist ww_nn_binned_data("ww_nn_binned_data", "ww_nn_binned_data",
       observables, *ww_nn_data);
-  RooDataHist* cn_nn_binned_data = new RooDataHist("cn_nn_binned_data", "cn_nn_binned_data",
+  RooDataHist cn_nn_binned_data("cn_nn_binned_data", "cn_nn_binned_data",
       observables, *cn_nn_data);
 
   int interpolation_order = 0;
   RooHistPdf bs_pp_pdf("bs_pp_pdf", "bs_pp_pdf",
-      observables, *bs_pp_binned_data, interpolation_order);
+      observables, bs_pp_binned_data, interpolation_order);
   RooHistPdf bd_pp_pdf("bd_pp_pdf", "bd_pp_pdf",
-      observables, *bd_pp_binned_data, interpolation_order);
+      observables, bd_pp_binned_data, interpolation_order);
   RooHistPdf cw_pp_pdf("cw_pp_pdf", "cw_pp_pdf",
-      observables, *cw_pp_binned_data, interpolation_order);
+      observables, cw_pp_binned_data, interpolation_order);
   RooHistPdf ww_pp_pdf("ww_pp_pdf", "ww_pp_pdf",
-      observables, *ww_pp_binned_data, interpolation_order);
+      observables, ww_pp_binned_data, interpolation_order);
   RooHistPdf cn_pp_pdf("cn_pp_pdf", "cn_pp_pdf",
-      observables, *cn_pp_binned_data, interpolation_order);
+      observables, cn_pp_binned_data, interpolation_order);
   RooHistPdf bs_nn_pdf("bs_nn_pdf", "bs_nn_pdf",
-      observables, *bs_nn_binned_data, interpolation_order);
+      observables, bs_nn_binned_data, interpolation_order);
   RooHistPdf bd_nn_pdf("bd_nn_pdf", "bd_nn_pdf",
-      observables, *bd_nn_binned_data, interpolation_order);
+      observables, bd_nn_binned_data, interpolation_order);
   RooHistPdf cw_nn_pdf("cw_nn_pdf", "cw_nn_pdf",
-      observables, *cw_nn_binned_data, interpolation_order);
+      observables, cw_nn_binned_data, interpolation_order);
   RooHistPdf ww_nn_pdf("ww_nn_pdf", "ww_nn_pdf",
-      observables, *ww_nn_binned_data, interpolation_order);
+      observables, ww_nn_binned_data, interpolation_order);
   RooHistPdf cn_nn_pdf("cn_nn_pdf", "cn_nn_pdf",
-      observables, *cn_nn_binned_data, interpolation_order);
+      observables, cn_nn_binned_data, interpolation_order);
+  
+  RooWorkspace model_space("model_space", "Fit models");
+  model_space.import(bs_pp_pdf);
+  model_space.import(bd_pp_pdf);
+  model_space.import(cw_pp_pdf);
+  model_space.import(ww_pp_pdf);
+  model_space.import(cn_pp_pdf);
+  model_space.import(bs_nn_pdf);
+  model_space.import(bd_nn_pdf);
+  model_space.import(cw_nn_pdf);
+  model_space.import(ww_nn_pdf);
+  model_space.import(cn_nn_pdf);
+  TFile models_file("models.root", "RECREATE");
+  model_space.Write();
+  models_file.Close();
+  
+  std::cout << "Finished!" << endl;
+}
+
+void Fit3D::fitData(const TString& filename, const TString& data_set)
+{
+
+  RooMsgService::instance().getStream(0).removeTopic(RooFit::Minimization);
+  RooMsgService::instance().getStream(1).removeTopic(RooFit::Minimization);
+  
+  TFile models_file("models.root", "READ");
+  RooWorkspace* model_space = (RooWorkspace*) models_file.Get("model_space");
+  
+  if (!model_space) {
+    std::cout << "Cannot load models. Exiting." << std::endl;
+    return;
+  }
+  
+  RooAbsPdf* bs_pp_pdf = model_space->pdf("bs_pp_pdf");
+  RooAbsPdf* bd_pp_pdf = model_space->pdf("bd_pp_pdf");
+  RooAbsPdf* cw_pp_pdf = model_space->pdf("cw_pp_pdf");
+  RooAbsPdf* ww_pp_pdf = model_space->pdf("ww_pp_pdf");
+  RooAbsPdf* cn_pp_pdf = model_space->pdf("cn_pp_pdf");
+  RooAbsPdf* bs_nn_pdf = model_space->pdf("bs_nn_pdf");
+  RooAbsPdf* bd_nn_pdf = model_space->pdf("bd_nn_pdf");
+  RooAbsPdf* cw_nn_pdf = model_space->pdf("cw_nn_pdf");
+  RooAbsPdf* ww_nn_pdf = model_space->pdf("ww_nn_pdf");
+  RooAbsPdf* cn_nn_pdf = model_space->pdf("cn_nn_pdf");
+  
+  std::cout << "Generating data sets for fit." << std::endl;
+  RooDataSet& pp_data = *((RooDataSet*) data_set_->reduce("(event_sign == event_sign::pp)"));
+  RooDataSet& nn_data = *((RooDataSet*) data_set_->reduce("(event_sign == event_sign::nn)"));
   
   RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.0000e+00, 1.0000e+10);
   RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.0000e+00, 1.0000e+10);
@@ -287,54 +338,24 @@ void Fit3D::generateModels()
   RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 0.0000e+00, 1.0000e+10);
   
   RooArgList pp_yields(n_bs_pp, n_bd_pp, n_cw_pp, n_ww_pp, n_cn_pp);
-  // RooArgList pn_yields(n_bs_pn, n_bd_pn, n_cw_pn, n_ww_pn, n_cn_pn);
+  /*
+  RooArgList pn_yields(n_bs_pn, n_bd_pn, n_cw_pn, n_ww_pn, n_cn_pn);
+  */
   RooArgList nn_yields(n_bs_nn, n_bd_nn, n_cw_nn, n_ww_nn, n_cn_nn);
   
   RooArgList pp_model_components(
-      bs_pp_pdf, bd_pp_pdf, cw_pp_pdf, ww_pp_pdf, cn_pp_pdf);
+      *bs_pp_pdf, *bd_pp_pdf, *cw_pp_pdf, *ww_pp_pdf, *cn_pp_pdf);
   RooArgList nn_model_components(
-      bs_nn_pdf, bd_nn_pdf, cw_nn_pdf, ww_nn_pdf, cn_nn_pdf);
+      *bs_nn_pdf, *bd_nn_pdf, *cw_nn_pdf, *ww_nn_pdf, *cn_nn_pdf);
   
   RooAddPdf* pp_model = new RooAddPdf("pp_model", "sig+bak", pp_model_components, pp_yields);
   RooAddPdf* nn_model = new RooAddPdf("nn_model", "sig+bak", nn_model_components, nn_yields);
   
-  RooWorkspace model_space("model_space", "Fit models");
-  model_space.import(*pp_model);
-  model_space.import(*nn_model);
-  TFile models_file("models.root", "RECREATE");
-  model_space.Write();
-  models_file.Close();
-  
-  std::cout << "Finished!" << endl;
-}
-
-void Fit3D::fitData(const TString& filename, const TString& data_set)
-{
-
-  RooMsgService::instance().getStream(0).removeTopic(RooFit::Minimization);
-  RooMsgService::instance().getStream(1).removeTopic(RooFit::Minimization);
-  
-  TFile models_file("models.root", "READ");
-  RooWorkspace* model_space = (RooWorkspace*) models_file.Get("model_space");
-  
-  if (!model_space) {
-    std::cout << "Cannot load models. Exiting." << std::endl;
-    return;
-  }
-  
-  RooAbsPdf* pp_model = model_space->pdf("pp_model");
-  RooAbsPdf* nn_model = model_space->pdf("nn_model");
-  
-  std::cout << "Generating data sets for fit." << std::endl;
-  
-  RooDataSet& pp_data = *((RooDataSet*) data_set_->reduce("(event_sign == event_sign::pp)"));
-  RooDataSet& nn_data = *((RooDataSet*) data_set_->reduce("(event_sign == event_sign::nn)"));
-    
   std::cout << "Starting the fit." << std::endl;
-  
   RooFitResult* pp_fit_results = pp_model->fitTo(
       pp_data,
       RooFit::Minos(true),
+      RooFit::Strategy(1),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
       RooFit::Save(true));
@@ -342,16 +363,13 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   RooFitResult* nn_fit_results = nn_model->fitTo(
       nn_data,
       RooFit::Minos(true),
+      RooFit::Strategy(1),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
       RooFit::Save(true));
   
-  pp_fit_results->Print("v");
-  nn_fit_results->Print("v");
-  
   plotFitAccuracy(pp_data, *pp_fit_results);
   plotFitAccuracy(nn_data, *nn_fit_results);
-  
 }
 
 void Fit3D::plotFitAccuracy(
