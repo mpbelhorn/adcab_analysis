@@ -340,8 +340,8 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   RooAbsPdf* cn_nn_pdf = model_space->pdf("cn_nn_pdf");
   
   std::cout << "Generating data sets for fit." << std::endl;
-  RooDataSet& pp_data = *((RooDataSet*) all_data.reduce("(event_sign == event_sign::pp) && ((event_species == event_species::mumu) || (event_species == event_species::elel))"));
-  RooDataSet& nn_data = *((RooDataSet*) all_data.reduce("(event_sign == event_sign::nn) && ((event_species == event_species::mumu) || (event_species == event_species::elel))"));
+  RooDataSet& pp_data = *((RooDataSet*) all_data.reduce(pp_events_cut_));
+  RooDataSet& nn_data = *((RooDataSet*) all_data.reduce(nn_events_cut_));
   
   RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.0000e+00, 1.0000e+10);
   RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.0000e+00, 1.0000e+10);
