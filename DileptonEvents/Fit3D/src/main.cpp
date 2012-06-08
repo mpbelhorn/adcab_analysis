@@ -11,9 +11,9 @@ int main(int argc, char *argv[])
   
   // Process ntuple: generate plots and dataset.
   Fit3D psum_loa_dz_fit(argv[1], argv[2],
-      "|p_{0}| + |p_{1}| (GeV/c)", 2.0, 5,
-      "Cos(#Theta_{ll})", -1, 1,
-      "#Delta z", -.2, .2);
+      "|p_{0}| + |p_{1}| (GeV/c)", 2.0, 5.25,
+      "Cos(#Theta_{ll})", -0.80, 0.98,
+      "#Delta z", 0, .2);
 
   // Process raw data.
   psum_loa_dz_fit.setCreateDataSet(true);

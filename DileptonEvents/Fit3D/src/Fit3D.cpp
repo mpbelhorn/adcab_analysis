@@ -2,7 +2,28 @@
 #include "EventSelectors.h"
 #include <iostream>
 #include "RooDataHist.h"
+#include "RooPlot.h"
 
+void plotFitProjection(const RooRealVar &independant_variable, const RooDataSet &data,
+        const RooAbsPdf &model, const TString &filename) {
+  RooPlot* frame = independant_variable.frame();
+  data.plotOn(frame, RooFit::Name("data"));
+  model.plotOn(frame, RooFit::Name("model"), RooFit::LineColor(kBlue));
+  model.plotOn(frame, RooFit::Components("*bs*"),
+      RooFit::LineStyle(kDashed), RooFit::LineWidth(1), RooFit::LineColor(kYellow));
+  model.plotOn(frame, RooFit::Components("*bd*"),
+      RooFit::LineStyle(kDashed), RooFit::LineWidth(1), RooFit::LineColor(kRed));
+  model.plotOn(frame, RooFit::Components("*cw*"),
+      RooFit::LineStyle(kDashed), RooFit::LineWidth(1), RooFit::LineColor(kGreen));
+  model.plotOn(frame, RooFit::Components("*ww*"),
+      RooFit::LineStyle(kDashed), RooFit::LineWidth(1), RooFit::LineColor(kBlue));
+  model.plotOn(frame, RooFit::Components("*cn*"),
+      RooFit::LineStyle(kDashed), RooFit::LineWidth(1), RooFit::LineColor(kCyan));
+
+  TCanvas* c1 = new TCanvas("c1", "Projection", 200, 10, 700, 500);
+  frame->Draw();
+  c1->Print(filename);
+}
 
 Fit3D::Fit3D(
     TString input_ntuple_file,
@@ -27,6 +48,9 @@ Fit3D::Fit3D(
       "y_variable", y_axis_label, min_y_bin_edge, max_y_bin_edge);
   z_variable_ = new RooRealVar(
       "z_variable", z_axis_label, min_z_bin_edge, max_z_bin_edge);
+  x_variable_->setBins(100);
+  y_variable_->setBins(50);
+  z_variable_->setBins(50);
   std::cout << "Adding new columns to dataset." << std::endl;
   RooArgSet analysis_variables(*x_variable_, *y_variable_, *z_variable_);
   data_set_->printArgs(cout);
@@ -271,6 +295,7 @@ void Fit3D::generateModels()
       observables, cn_nn_binned_data, interpolation_order);
   
   RooWorkspace model_space("model_space", "Fit models");
+  model_space.import(*data_set_);
   model_space.import(bs_pp_pdf);
   model_space.import(bd_pp_pdf);
   model_space.import(cw_pp_pdf);
@@ -302,6 +327,7 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
     return;
   }
   
+  RooAbsData &all_data = *(model_space->data("data_set"));
   RooAbsPdf* bs_pp_pdf = model_space->pdf("bs_pp_pdf");
   RooAbsPdf* bd_pp_pdf = model_space->pdf("bd_pp_pdf");
   RooAbsPdf* cw_pp_pdf = model_space->pdf("cw_pp_pdf");
@@ -314,8 +340,8 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   RooAbsPdf* cn_nn_pdf = model_space->pdf("cn_nn_pdf");
   
   std::cout << "Generating data sets for fit." << std::endl;
-  RooDataSet& pp_data = *((RooDataSet*) data_set_->reduce("(event_sign == event_sign::pp)"));
-  RooDataSet& nn_data = *((RooDataSet*) data_set_->reduce("(event_sign == event_sign::nn)"));
+  RooDataSet& pp_data = *((RooDataSet*) all_data.reduce("(event_sign == event_sign::pp) && ((event_species == event_species::mumu) || (event_species == event_species::elel))"));
+  RooDataSet& nn_data = *((RooDataSet*) all_data.reduce("(event_sign == event_sign::nn) && ((event_species == event_species::mumu) || (event_species == event_species::elel))"));
   
   RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.0000e+00, 1.0000e+10);
   RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.0000e+00, 1.0000e+10);
@@ -348,28 +374,32 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   RooArgList nn_model_components(
       *bs_nn_pdf, *bd_nn_pdf, *cw_nn_pdf, *ww_nn_pdf, *cn_nn_pdf);
   
-  RooAddPdf* pp_model = new RooAddPdf("pp_model", "sig+bak", pp_model_components, pp_yields);
-  RooAddPdf* nn_model = new RooAddPdf("nn_model", "sig+bak", nn_model_components, nn_yields);
+  RooAddPdf pp_model("pp_model", "sig+bak", pp_model_components, pp_yields);
+  RooAddPdf nn_model("nn_model", "sig+bak", nn_model_components, nn_yields);
   
   std::cout << "Starting the fit." << std::endl;
-  RooFitResult* pp_fit_results = pp_model->fitTo(
+  RooFitResult* pp_fit_results = pp_model.fitTo(
       pp_data,
       RooFit::Minos(true),
-      RooFit::Strategy(1),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
       RooFit::Save(true));
   
-  RooFitResult* nn_fit_results = nn_model->fitTo(
+  RooFitResult* nn_fit_results = nn_model.fitTo(
       nn_data,
       RooFit::Minos(true),
-      RooFit::Strategy(1),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
       RooFit::Save(true));
   
   plotFitAccuracy(pp_data, *pp_fit_results);
   plotFitAccuracy(nn_data, *nn_fit_results);
+  plotFitProjection(*x_variable_, pp_data, pp_model, "pp_x_fit.eps");
+  plotFitProjection(*y_variable_, pp_data, pp_model, "pp_y_fit.eps");
+  plotFitProjection(*z_variable_, pp_data, pp_model, "pp_z_fit.eps");
+  plotFitProjection(*x_variable_, nn_data, nn_model, "nn_x_fit.eps");
+  plotFitProjection(*y_variable_, nn_data, nn_model, "nn_y_fit.eps");
+  plotFitProjection(*z_variable_, nn_data, nn_model, "nn_z_fit.eps");
 }
 
 void Fit3D::plotFitAccuracy(
@@ -390,7 +420,7 @@ void Fit3D::plotFitAccuracy(
   RooRealVar* ww_fit = (RooRealVar*) fit.floatParsFinal().find("n_ww_pp");
   RooRealVar* cn_fit = (RooRealVar*) fit.floatParsFinal().find("n_cn_pp");
   
-  TString title("Fit Accuracy, ++ events");
+  TString title("Fit Accuracy (N^{++}_{fit}-N^{++}_{true})");
   TString filename("fit_accuracy_pp.eps");
   if (!bs_fit) {
     bs_fit = (RooRealVar*) fit.floatParsFinal().find("n_bs_nn");
@@ -398,7 +428,7 @@ void Fit3D::plotFitAccuracy(
     cw_fit = (RooRealVar*) fit.floatParsFinal().find("n_cw_nn");
     ww_fit = (RooRealVar*) fit.floatParsFinal().find("n_ww_nn");
     cn_fit = (RooRealVar*) fit.floatParsFinal().find("n_cn_nn");
-    title = TString("Fit Accuracy, -- events");
+    title = TString("Fit Accuracy (N^{--}_{fit}-N^{--}_{true})");
     filename = TString("fit_accuracy_nn.eps");
   }
   if (!bs_fit) {
@@ -432,6 +462,11 @@ void Fit3D::plotFitAccuracy(
       ww_fit->getErrorHi(),
       cn_fit->getErrorHi()};
   TGraphAsymmErrors* gr = new TGraphAsymmErrors(5, x, y, exl, exh, eyl, eyh);
+  gr->GetXaxis()->SetBinLabel(1, "CC B_{s}");
+  gr->GetXaxis()->SetBinLabel(1, "CC B_{d}");
+  gr->GetXaxis()->SetBinLabel(1, "CW");
+  gr->GetXaxis()->SetBinLabel(1, "WW");
+  gr->GetXaxis()->SetBinLabel(1, "CN");
   gr->SetTitle(title);
   gr->SetMarkerStyle(kOpenCircle);
   gr->SetMarkerColor(4);
