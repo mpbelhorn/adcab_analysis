@@ -18,6 +18,7 @@ DileptonEvents::DileptonEvents(
   cw_events_cut_ = TCut("component == component::cw");
   ww_events_cut_ = TCut("component == component::ww");
   cn_events_cut_ = TCut("component == component::cn");
+  true_events_cut_ = TCut("component != component::er");
   
   event_sign_ = new RooCategory("event_sign","Event Sign");
   event_sign_->defineType("nn", -1);

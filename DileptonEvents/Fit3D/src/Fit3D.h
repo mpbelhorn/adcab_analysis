@@ -9,6 +9,7 @@
 #include "RooDataHist.h"
 #include "RooHistPdf.h"
 #include "RooAddPdf.h"
+#include "RooProdPdf.h"
 #include "RooFitResult.h"
 #include "RooPlot.h"
 #include "TH3.h"

@@ -38,6 +38,11 @@ Fit3D::Fit3D(
 {
   std::cout << "Initiliazing Fit3D class." << std::endl;
   
+  // Remove information about moving files. Really, all RooMsgService streams
+  //   should be sent to a debug log.
+  RooMsgService::instance().getStream(1).removeTopic(RooFit::ObjectHandling);
+  RooMsgService::instance().getStream(1).removeTopic(RooFit::Plotting);
+
   // Define the data set elements and add them to the dataset.
   x_variable_ = new RooRealVar(
       "x_variable", x_axis_label, min_x_bin_edge, max_x_bin_edge);
@@ -45,9 +50,9 @@ Fit3D::Fit3D(
       "y_variable", y_axis_label, min_y_bin_edge, max_y_bin_edge);
   z_variable_ = new RooRealVar(
       "z_variable", z_axis_label, min_z_bin_edge, max_z_bin_edge);
-  x_variable_->setBins(100);
-  y_variable_->setBins(50);
-  z_variable_->setBins(50);
+  x_variable_->setBins(30);
+  y_variable_->setBins(30);
+  z_variable_->setBins(15);
   std::cout << "Adding new columns to dataset." << std::endl;
   RooArgSet analysis_variables(*x_variable_, *y_variable_, *z_variable_);
   data_set_->printArgs(cout);
@@ -74,9 +79,9 @@ Fit3D::Fit3D(
         name.Append("_");
         name.Append(tags_.components_[k]);
         TH3D component_histogram(name, name, 
-            100, min_x_bin_edge, max_x_bin_edge,
-            100, min_y_bin_edge, max_y_bin_edge, 
-            100, min_z_bin_edge, max_z_bin_edge);
+            x_variable_->getBins(), min_x_bin_edge, max_x_bin_edge,
+            y_variable_->getBins(), min_y_bin_edge, max_y_bin_edge, 
+            z_variable_->getBins(), min_z_bin_edge, max_z_bin_edge);
         component_histograms.push_back(component_histogram);
         name.Clear();
       }
@@ -147,9 +152,9 @@ void Fit3D::drawHistograms()
   for (int i = 0; i < tags_.species_.size(); ++i) {
     TCanvas canvas("canvas", tags_.species_[i], 1200, 1200);
     canvas.Divide(3, 3);
-    vector<TH1D*> x_histograms;
-    vector<TH1D*> y_histograms;
-    vector<TH1D*> z_histograms;
+    vector<TH1*> x_histograms;
+    vector<TH1*> y_histograms;
+    vector<TH1*> z_histograms;
     for (int j = 0; j < tags_.signs_.size(); ++j) {
       x_histograms.clear();
       y_histograms.clear();
@@ -159,17 +164,17 @@ void Fit3D::drawHistograms()
       int z_max(0);
       for (int k = 0; k < tags_.components_.size(); ++k) {
         TString base_name = histograms_[i][j][k].GetName();
-        TH1D* x_histogram = histograms_[i][j][k].ProjectionX(base_name + "_x");
+        TH1* x_histogram = histograms_[i][j][k].Project3D("x");
         x_histograms.push_back(x_histogram);
         if (x_histogram->GetMaximum() > x_max) {
           x_max = x_histogram->GetMaximum();
         }
-        TH1D* y_histogram = histograms_[i][j][k].ProjectionY(base_name + "_y");
+        TH1* y_histogram = histograms_[i][j][k].Project3D("y");
         y_histograms.push_back(y_histogram);
         if (y_histogram->GetMaximum() > y_max) {
           y_max = y_histogram->GetMaximum();
         }
-        TH1D* z_histogram = histograms_[i][j][k].ProjectionZ(base_name + "_z");
+        TH1* z_histogram = histograms_[i][j][k].Project3D("z");
         z_histograms.push_back(z_histogram);
         if (z_histogram->GetMaximum() > z_max) {
           z_max = z_histogram->GetMaximum();
@@ -226,9 +231,6 @@ void Fit3D::generateModels()
   std::cout << "Generating models..." << endl;
 
   RooWorkspace model_space("model_space", "Fit models");
-  // RooMsgService::instance().getStream(1).removeTopic(RooFit::ObjectHandling);
-
-  int interpolation_order = 0;
   RooArgList xy_variables(*x_variable_, *y_variable_);
   for (int j = 0; j < tags_.signs_.size(); ++j) {
     for (int k = 1; k < tags_.components_.size(); ++k) {
@@ -258,15 +260,15 @@ void Fit3D::generateModels()
           name + "_xy_pdf",
           xy_variables,
           xy_data,
-          interpolation_order);
+          4);
       RooHistPdf z_pdf(
           name + "_z_pdf",
           name + "_z_pdf",
           RooArgList(*z_variable_),
           z_data,
-          interpolation_order);
-      model_space.import(xy_pdf);
-      model_space.import(z_pdf);
+          2);
+      RooProdPdf pdf(name + "_pdf", name + "_pdf", xy_pdf, z_pdf);
+      model_space.import(pdf);
     }
   }
   
@@ -292,55 +294,47 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
     return;
   }
   
-  RooAbsData &all_data = *(model_space->data("data_set"));
-  RooAbsPdf* bs_pp_pdf = model_space->pdf("bs_pp_pdf");
-  RooAbsPdf* bd_pp_pdf = model_space->pdf("bd_pp_pdf");
-  RooAbsPdf* cw_pp_pdf = model_space->pdf("cw_pp_pdf");
-  RooAbsPdf* ww_pp_pdf = model_space->pdf("ww_pp_pdf");
-  RooAbsPdf* cn_pp_pdf = model_space->pdf("cn_pp_pdf");
-  RooAbsPdf* bs_nn_pdf = model_space->pdf("bs_nn_pdf");
-  RooAbsPdf* bd_nn_pdf = model_space->pdf("bd_nn_pdf");
-  RooAbsPdf* cw_nn_pdf = model_space->pdf("cw_nn_pdf");
-  RooAbsPdf* ww_nn_pdf = model_space->pdf("ww_nn_pdf");
-  RooAbsPdf* cn_nn_pdf = model_space->pdf("cn_nn_pdf");
+  RooAbsData &data_set = *(model_space->data("data_set"));
+  RooAbsPdf* pp_bs_pdf = model_space->pdf("pp_bs_pdf");
+  RooAbsPdf* pp_bd_pdf = model_space->pdf("pp_bd_pdf");
+  RooAbsPdf* pp_cw_pdf = model_space->pdf("pp_cw_pdf");
+  RooAbsPdf* pp_ww_pdf = model_space->pdf("pp_ww_pdf");
+  RooAbsPdf* pp_cn_pdf = model_space->pdf("pp_cn_pdf");
+  
+  RooAbsPdf* nn_bs_pdf = model_space->pdf("nn_bs_pdf");
+  RooAbsPdf* nn_bd_pdf = model_space->pdf("nn_bd_pdf");
+  RooAbsPdf* nn_cw_pdf = model_space->pdf("nn_cw_pdf");
+  RooAbsPdf* nn_ww_pdf = model_space->pdf("nn_ww_pdf");
+  RooAbsPdf* nn_cn_pdf = model_space->pdf("nn_cn_pdf");
   
   std::cout << "Generating data sets for fit." << std::endl;
-  RooDataSet& pp_data = *((RooDataSet*) all_data.reduce(pp_events_cut_));
-  RooDataSet& nn_data = *((RooDataSet*) all_data.reduce(nn_events_cut_));
+  RooDataSet& pp_data = *((RooDataSet*) data_set.reduce(pp_events_cut_ + true_events_cut_));
+  RooDataSet& nn_data = *((RooDataSet*) data_set.reduce(nn_events_cut_ + true_events_cut_));
   
-  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 0.0000e+00, 1.0000e+10);
+  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.0000e+00, 1.0000e+6);
+  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.0000e+00, 1.0000e+6);
+  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 0.0000e+00, 1.0000e+6);
+  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 0.0000e+00, 1.0000e+6);
+  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 0.0000e+00, 1.0000e+6);
   
-  /*
-  RooRealVar n_bs_pn("n_bs_pn", "n_bs_pn", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_bd_pn("n_bd_pn", "n_bd_pn", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_cw_pn("n_cw_pn", "n_cw_pn", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_ww_pn("n_ww_pn", "n_ww_pn", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_cn_pn("n_cn_pn", "n_cn_pn", 0.0000e+00, 1.0000e+10);
-  */
-  
-  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 0.0000e+00, 1.0000e+10);
-  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 0.0000e+00, 1.0000e+10);
+  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 0.0000e+00, 1.0000e+6);
+  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 0.0000e+00, 1.0000e+6);
+  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 0.0000e+00, 1.0000e+6);
+  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 0.0000e+00, 1.0000e+6);
+  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 0.0000e+00, 1.0000e+6);
   
   RooArgList pp_yields(n_bs_pp, n_bd_pp, n_cw_pp, n_ww_pp, n_cn_pp);
-  /*
-  RooArgList pn_yields(n_bs_pn, n_bd_pn, n_cw_pn, n_ww_pn, n_cn_pn);
-  */
   RooArgList nn_yields(n_bs_nn, n_bd_nn, n_cw_nn, n_ww_nn, n_cn_nn);
   
-  RooArgList pp_model_components(
-      *bs_pp_pdf, *bd_pp_pdf, *cw_pp_pdf, *ww_pp_pdf, *cn_pp_pdf);
-  RooArgList nn_model_components(
-      *bs_nn_pdf, *bd_nn_pdf, *cw_nn_pdf, *ww_nn_pdf, *cn_nn_pdf);
+  RooArgList pp_model_components(*pp_bs_pdf, *pp_bd_pdf, *pp_cw_pdf,
+      *pp_ww_pdf, *pp_cn_pdf);
+  RooArgList nn_model_components(*nn_bs_pdf, *nn_bd_pdf, *nn_cw_pdf,
+      *nn_ww_pdf, *nn_cn_pdf);
   
-  RooAddPdf pp_model("pp_model", "sig+bak", pp_model_components, pp_yields);
-  RooAddPdf nn_model("nn_model", "sig+bak", nn_model_components, nn_yields);
+  RooAddPdf pp_model(
+      "pp_model", "sig+bak", pp_model_components, pp_yields);
+  RooAddPdf nn_model(
+      "nn_model", "sig+bak", nn_model_components, nn_yields);
   
   std::cout << "Starting the fit." << std::endl;
   RooFitResult* pp_fit_results = pp_model.fitTo(
@@ -403,8 +397,8 @@ void Fit3D::plotFitAccuracy(
     return;
   }
 
-  TCanvas* c1 = new TCanvas("c1", title, 200, 10, 700, 500);
-  c1->SetGrid();
+  TCanvas c1("c1", title, 200, 10, 700, 500);
+  c1.SetGrid();
   double x[5] = {1, 2, 3, 4, 5};
   double y[5] = {
       bs_fit->getVal() - n_true_bs,
@@ -428,16 +422,16 @@ void Fit3D::plotFitAccuracy(
       cn_fit->getErrorHi()};
   TGraphAsymmErrors* gr = new TGraphAsymmErrors(5, x, y, exl, exh, eyl, eyh);
   gr->GetXaxis()->SetBinLabel(1, "CC B_{s}");
-  gr->GetXaxis()->SetBinLabel(1, "CC B_{d}");
-  gr->GetXaxis()->SetBinLabel(1, "CW");
-  gr->GetXaxis()->SetBinLabel(1, "WW");
-  gr->GetXaxis()->SetBinLabel(1, "CN");
+  gr->GetXaxis()->SetBinLabel(2, "CC B_{d}");
+  gr->GetXaxis()->SetBinLabel(3, "CW");
+  gr->GetXaxis()->SetBinLabel(4, "WW");
+  gr->GetXaxis()->SetBinLabel(5, "CN");
   gr->SetTitle(title);
   gr->SetMarkerStyle(kOpenCircle);
   gr->SetMarkerColor(4);
   gr->SetMarkerStyle(21);
   gr->Draw("AP");
 
-  c1->Print(filename);
+  c1.Print(filename);
   return;
 }
