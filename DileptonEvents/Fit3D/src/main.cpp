@@ -26,10 +26,10 @@ int main(int argc, char *argv[])
   
   
   // Generate models.
-  psum_loa_dz_fit.generateModels();
+  // psum_loa_dz_fit.generateModels();
   
   // Fit data.
-  psum_loa_dz_fit.fitData();
+  // psum_loa_dz_fit.fitData();
   
   
   return 0;

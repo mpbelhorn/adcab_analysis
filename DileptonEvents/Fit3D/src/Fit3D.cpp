@@ -1,8 +1,5 @@
 #include "Fit3D.h"
-#include "EventSelectors.h"
-#include <iostream>
-#include "RooDataHist.h"
-#include "RooPlot.h"
+
 
 void plotFitProjection(const RooRealVar &independant_variable, const RooDataSet &data,
         const RooAbsPdf &model, const TString &filename) {
@@ -71,23 +68,16 @@ Fit3D::Fit3D(
       HistogramListOverComponents component_histograms;
       component_histograms.clear();
       for (int k = 0; k < tags_.components_.size(); ++k) {
-        HistogramListOverVariables variable_histograms;
-        variable_histograms.clear();
         name.Append(tags_.species_[i]);
         name.Append("_");
         name.Append(tags_.signs_[j]);
         name.Append("_");
         name.Append(tags_.components_[k]);
-        TH1F x_histogram(name + "_x", name + "_x",
-            100, min_x_bin_edge, max_x_bin_edge);
-        TH1F y_histogram(name + "_y", name + "_y",
-            100, min_y_bin_edge, max_y_bin_edge);
-        TH1F z_histogram(name + "_z", name + "_z",
+        TH3D component_histogram(name, name, 
+            100, min_x_bin_edge, max_x_bin_edge,
+            100, min_y_bin_edge, max_y_bin_edge, 
             100, min_z_bin_edge, max_z_bin_edge);
-        variable_histograms.push_back(x_histogram);
-        variable_histograms.push_back(y_histogram);
-        variable_histograms.push_back(z_histogram);
-        component_histograms.push_back(variable_histograms);
+        component_histograms.push_back(component_histogram);
         name.Clear();
       }
       event_sign_histograms.push_back(component_histograms);
@@ -146,9 +136,10 @@ void Fit3D::fillDataSet(const int &component)
 void Fit3D::fillHistograms(const int& component)
 {
   // Catch bad entries. Real data will have typ_true = 0.
-  histograms_[typ_tru][evt_sign + 1][component][0].Fill(x_value_);
-  histograms_[typ_tru][evt_sign + 1][component][1].Fill(y_value_);
-  histograms_[typ_tru][evt_sign + 1][component][2].Fill(z_value_);
+  histograms_[typ_tru][evt_sign + 1][component].Fill(
+      x_value_,
+      y_value_,
+      z_value_);
 }
 
 void Fit3D::drawHistograms()
@@ -156,42 +147,53 @@ void Fit3D::drawHistograms()
   for (int i = 0; i < tags_.species_.size(); ++i) {
     TCanvas canvas("canvas", tags_.species_[i], 1200, 1200);
     canvas.Divide(3, 3);
-    int canvas_column(0);
+    vector<TH1D*> x_histograms;
+    vector<TH1D*> y_histograms;
+    vector<TH1D*> z_histograms;
     for (int j = 0; j < tags_.signs_.size(); ++j) {
-      double greatest_x_bin_global(0);
-      double greatest_y_bin_global(0);
-      double greatest_z_bin_global(0);
+      x_histograms.clear();
+      y_histograms.clear();
+      z_histograms.clear();
+      int x_max(0);
+      int y_max(0);
+      int z_max(0);
       for (int k = 0; k < tags_.components_.size(); ++k) {
-        double greatest_x_bin_local = histograms_[i][j][k][0].GetMaximum();
-        double greatest_y_bin_local = histograms_[i][j][k][1].GetMaximum();
-        double greatest_z_bin_local = histograms_[i][j][k][2].GetMaximum();
-        if (greatest_x_bin_local > greatest_x_bin_global) {
-          greatest_x_bin_global = greatest_x_bin_local;
+        TString base_name = histograms_[i][j][k].GetName();
+        TH1D* x_histogram = histograms_[i][j][k].ProjectionX(base_name + "_x");
+        x_histograms.push_back(x_histogram);
+        if (x_histogram->GetMaximum() > x_max) {
+          x_max = x_histogram->GetMaximum();
         }
-        if (greatest_y_bin_local > greatest_y_bin_global) {
-          greatest_y_bin_global = greatest_y_bin_local;
+        TH1D* y_histogram = histograms_[i][j][k].ProjectionY(base_name + "_y");
+        y_histograms.push_back(y_histogram);
+        if (y_histogram->GetMaximum() > y_max) {
+          y_max = y_histogram->GetMaximum();
         }
-        if (greatest_z_bin_local > greatest_z_bin_global) {
-          greatest_z_bin_global = greatest_z_bin_local;
+        TH1D* z_histogram = histograms_[i][j][k].ProjectionZ(base_name + "_z");
+        z_histograms.push_back(z_histogram);
+        if (z_histogram->GetMaximum() > z_max) {
+          z_max = z_histogram->GetMaximum();
         }
-        histograms_[i][j][k][0].SetLineColor(tags_.colors_[k]);
-        histograms_[i][j][k][1].SetLineColor(tags_.colors_[k]);
-        histograms_[i][j][k][2].SetLineColor(tags_.colors_[k]);
       }
       for (int k = 0; k < tags_.components_.size(); ++k) {
-        canvas.cd(j + 1 + 0);
         TString options = ((k == 0) ? "e" : "e same");
-        histograms_[i][j][k][0].SetMaximum(1.1 * greatest_x_bin_global);
-        histograms_[i][j][k][0].Draw(options);
+        
+        canvas.cd(j + 1 + 0);
+        x_histograms[k]->SetMaximum(1.1 * x_max);
+        x_histograms[k]->SetLineColor(tags_.colors_[k]);
+        x_histograms[k]->Draw(options);
         canvas.cd(j + 1 + 3);
-        histograms_[i][j][k][1].SetMaximum(1.1 * greatest_y_bin_global);
-        histograms_[i][j][k][1].Draw(options);
+        y_histograms[k]->SetMaximum(1.1 * y_max);
+        y_histograms[k]->SetLineColor(tags_.colors_[k]);
+        y_histograms[k]->Draw(options);
         canvas.cd(j + 1 + 6);
-        histograms_[i][j][k][2].SetMaximum(1.1 * greatest_z_bin_global);
-        histograms_[i][j][k][2].Draw(options);
+        z_histograms[k]->SetMaximum(1.1 * z_max);
+        z_histograms[k]->SetLineColor(tags_.colors_[k]);
+        z_histograms[k]->Draw(options);
       }
     }
     canvas.Print(tags_.species_[i] + ".eps");
+    // Delete ROOT's shitty pointers.
   }
 }
 
@@ -201,9 +203,7 @@ void Fit3D::saveHistograms(const TString& filename)
   for (int i = 0; i < tags_.species_.size(); ++i) {
     for (int j = 0; j < tags_.signs_.size(); ++j) {
       for (int k = 0; k < tags_.components_.size(); ++k) {
-        for (int l = 0; l < 3; ++l) {
-          histograms_[i][j][k][l].Write();
-        }
+        histograms_[i][j][k].Write();
       }
     }
   }

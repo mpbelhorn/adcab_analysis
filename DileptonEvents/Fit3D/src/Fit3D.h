@@ -2,17 +2,22 @@
 #define Fit3D_h
 
 #include "DileptonEvents.h"
+#include "EventSelectors.h"
 #include "RooRealVar.h"
 #include "RooCategory.h"
 #include "RooDataSet.h"
+#include "RooDataHist.h"
 #include "RooHistPdf.h"
 #include "RooAddPdf.h"
 #include "RooFitResult.h"
+#include "RooPlot.h"
+#include "TH3.h"
 #include "TGraphAsymmErrors.h"
 #include <vector>
+#include <iostream>
 
-typedef vector<TH1F> HistogramListOverVariables;
-typedef vector<HistogramListOverVariables> HistogramListOverComponents;
+
+typedef vector<TH3D> HistogramListOverComponents;
 typedef vector<HistogramListOverComponents> HistogramListOverEventSigns;
 typedef vector<HistogramListOverEventSigns> HistogramListOverEventSpecies;
 
