@@ -225,98 +225,52 @@ void Fit3D::generateModels()
 {
   std::cout << "Generating models..." << endl;
 
-  // Reduce data to components.
-  RooDataSet* bs_pp_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(bs_events_cut_ && pp_events_cut_));
-  RooDataSet* bd_pp_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(bd_events_cut_ && pp_events_cut_));
-  RooDataSet* cw_pp_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(cw_events_cut_ && pp_events_cut_));
-  RooDataSet* ww_pp_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(ww_events_cut_ && pp_events_cut_));
-  RooDataSet* cn_pp_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(cn_events_cut_ && pp_events_cut_));
-  
-  /*
-  RooDataSet* bs_pn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(bs_events_cut_ && pn_events_cut_));
-  RooDataSet* bd_pn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(bd_events_cut_ && pn_events_cut_));
-  RooDataSet* cw_pn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(cw_events_cut_ && pn_events_cut_));
-  RooDataSet* ww_pn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(ww_events_cut_ && pn_events_cut_));
-  RooDataSet* cn_pn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(cn_events_cut_ && pn_events_cut_));
-  */
-  
-  RooDataSet* bs_nn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(bs_events_cut_ && nn_events_cut_));
-  RooDataSet* bd_nn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(bd_events_cut_ && nn_events_cut_));
-  RooDataSet* cw_nn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(cw_events_cut_ && nn_events_cut_));
-  RooDataSet* ww_nn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(ww_events_cut_ && nn_events_cut_));
-  RooDataSet* cn_nn_data = (RooDataSet*) data_set_->reduce(
-      RooFit::Cut(cn_events_cut_ && nn_events_cut_));
-
-  RooArgList observables(*x_variable_, *y_variable_, *z_variable_);
-  RooDataHist bs_pp_binned_data("bs_pp_binned_data", "bs_pp_binned_data",
-      observables, *bs_pp_data);
-  RooDataHist bd_pp_binned_data("bd_pp_binned_data", "bd_pp_binned_data",
-      observables, *bd_pp_data);
-  RooDataHist cw_pp_binned_data("cw_pp_binned_data", "cw_pp_binned_data",
-      observables, *cw_pp_data);
-  RooDataHist ww_pp_binned_data("ww_pp_binned_data", "ww_pp_binned_data",
-      observables, *ww_pp_data);
-  RooDataHist cn_pp_binned_data("cn_pp_binned_data", "cn_pp_binned_data",
-      observables, *cn_pp_data);
-  RooDataHist bs_nn_binned_data("bs_nn_binned_data", "bs_nn_binned_data",
-      observables, *bs_nn_data);
-  RooDataHist bd_nn_binned_data("bd_nn_binned_data", "bd_nn_binned_data",
-      observables, *bd_nn_data);
-  RooDataHist cw_nn_binned_data("cw_nn_binned_data", "cw_nn_binned_data",
-      observables, *cw_nn_data);
-  RooDataHist ww_nn_binned_data("ww_nn_binned_data", "ww_nn_binned_data",
-      observables, *ww_nn_data);
-  RooDataHist cn_nn_binned_data("cn_nn_binned_data", "cn_nn_binned_data",
-      observables, *cn_nn_data);
+  RooWorkspace model_space("model_space", "Fit models");
+  // RooMsgService::instance().getStream(1).removeTopic(RooFit::ObjectHandling);
 
   int interpolation_order = 0;
-  RooHistPdf bs_pp_pdf("bs_pp_pdf", "bs_pp_pdf",
-      observables, bs_pp_binned_data, interpolation_order);
-  RooHistPdf bd_pp_pdf("bd_pp_pdf", "bd_pp_pdf",
-      observables, bd_pp_binned_data, interpolation_order);
-  RooHistPdf cw_pp_pdf("cw_pp_pdf", "cw_pp_pdf",
-      observables, cw_pp_binned_data, interpolation_order);
-  RooHistPdf ww_pp_pdf("ww_pp_pdf", "ww_pp_pdf",
-      observables, ww_pp_binned_data, interpolation_order);
-  RooHistPdf cn_pp_pdf("cn_pp_pdf", "cn_pp_pdf",
-      observables, cn_pp_binned_data, interpolation_order);
-  RooHistPdf bs_nn_pdf("bs_nn_pdf", "bs_nn_pdf",
-      observables, bs_nn_binned_data, interpolation_order);
-  RooHistPdf bd_nn_pdf("bd_nn_pdf", "bd_nn_pdf",
-      observables, bd_nn_binned_data, interpolation_order);
-  RooHistPdf cw_nn_pdf("cw_nn_pdf", "cw_nn_pdf",
-      observables, cw_nn_binned_data, interpolation_order);
-  RooHistPdf ww_nn_pdf("ww_nn_pdf", "ww_nn_pdf",
-      observables, ww_nn_binned_data, interpolation_order);
-  RooHistPdf cn_nn_pdf("cn_nn_pdf", "cn_nn_pdf",
-      observables, cn_nn_binned_data, interpolation_order);
+  RooArgList xy_variables(*x_variable_, *y_variable_);
+  for (int j = 0; j < tags_.signs_.size(); ++j) {
+    for (int k = 1; k < tags_.components_.size(); ++k) {
+      // Extract 2D histograms.
+      TString name = "";
+      name.Append(tags_.signs_[j]);
+      name.Append("_");
+      name.Append(tags_.components_[k]);
+      TH1* xy_histogram = histograms_[1][j][k].Project3D("yx");
+      xy_histogram->Add(histograms_[2][j][k].Project3D("yx"));
+      xy_histogram->Add(histograms_[3][j][k].Project3D("yx"));
+      RooDataHist xy_data(
+          name + "_xy_data",
+          name + "_xy_data",
+          xy_variables,
+          xy_histogram);
+      TH1* z_histogram = histograms_[1][j][k].Project3D("z");
+      z_histogram->Add(histograms_[2][j][k].Project3D("z"));
+      z_histogram->Add(histograms_[3][j][k].Project3D("z"));
+      RooDataHist z_data(
+          name + "_z_data",
+          name + "_z_data",
+          RooArgList(*z_variable_),
+          z_histogram);
+      RooHistPdf xy_pdf(
+          name + "_xy_pdf",
+          name + "_xy_pdf",
+          xy_variables,
+          xy_data,
+          interpolation_order);
+      RooHistPdf z_pdf(
+          name + "_z_pdf",
+          name + "_z_pdf",
+          RooArgList(*z_variable_),
+          z_data,
+          interpolation_order);
+      model_space.import(xy_pdf);
+      model_space.import(z_pdf);
+    }
+  }
   
-  RooWorkspace model_space("model_space", "Fit models");
   model_space.import(*data_set_);
-  model_space.import(bs_pp_pdf);
-  model_space.import(bd_pp_pdf);
-  model_space.import(cw_pp_pdf);
-  model_space.import(ww_pp_pdf);
-  model_space.import(cn_pp_pdf);
-  model_space.import(bs_nn_pdf);
-  model_space.import(bd_nn_pdf);
-  model_space.import(cw_nn_pdf);
-  model_space.import(ww_nn_pdf);
-  model_space.import(cn_nn_pdf);
   TFile models_file("models.root", "RECREATE");
   model_space.Write();
   models_file.Close();
