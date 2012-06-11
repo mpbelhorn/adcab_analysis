@@ -193,7 +193,18 @@ void Fit3D::drawHistograms()
       }
     }
     canvas.Print(tags_.species_[i] + ".eps");
-    // Delete ROOT's shitty pointers.
+    while (!x_histograms.empty()) {
+      delete x_histograms.back();
+      x_histograms.pop_back();
+    }
+    while (!y_histograms.empty()) {
+      delete y_histograms.back();
+      y_histograms.pop_back();
+    }
+    while (!z_histograms.empty()) {
+      delete z_histograms.back();
+      z_histograms.pop_back();
+    }
   }
 }
 
