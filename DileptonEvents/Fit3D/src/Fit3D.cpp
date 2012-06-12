@@ -262,7 +262,7 @@ void Fit3D::generateModels()
           name + "_xy_pdf",
           xy_variables,
           xy_data,
-          4);
+          1);
       RooHistPdf z_pdf(
           name + "_z_pdf",
           name + "_z_pdf",
