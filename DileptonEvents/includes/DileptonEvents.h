@@ -171,7 +171,6 @@ class DileptonEvents {
   TCut cw_events_cut_;
   TCut ww_events_cut_;
   TCut cn_events_cut_;
-  TCut true_events_cut_;
   
   void setCreateDataSet(const bool& yes_or_no);
   void recreateDataSet(RooArgSet& variables);

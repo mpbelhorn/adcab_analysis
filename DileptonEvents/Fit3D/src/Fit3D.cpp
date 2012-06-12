@@ -52,7 +52,7 @@ Fit3D::Fit3D(
       "z_variable", z_axis_label, min_z_bin_edge, max_z_bin_edge);
   x_variable_->setBins(30);
   y_variable_->setBins(30);
-  z_variable_->setBins(15);
+  z_variable_->setBins(30);
   std::cout << "Adding new columns to dataset." << std::endl;
   RooArgSet analysis_variables(*x_variable_, *y_variable_, *z_variable_);
   data_set_->printArgs(cout);
@@ -239,7 +239,8 @@ void Fit3D::generateModels()
       name.Append(tags_.signs_[j]);
       name.Append("_");
       name.Append(tags_.components_[k]);
-      TH1* xy_histogram = histograms_[1][j][k].Project3D("yx");
+      TH1* xy_histogram = histograms_[0][j][k].Project3D("yx");
+      xy_histogram->Add(histograms_[1][j][k].Project3D("yx"));
       xy_histogram->Add(histograms_[2][j][k].Project3D("yx"));
       xy_histogram->Add(histograms_[3][j][k].Project3D("yx"));
       RooDataHist xy_data(
@@ -247,7 +248,8 @@ void Fit3D::generateModels()
           name + "_xy_data",
           xy_variables,
           xy_histogram);
-      TH1* z_histogram = histograms_[1][j][k].Project3D("z");
+      TH1* z_histogram = histograms_[0][j][k].Project3D("z");
+      z_histogram->Add(histograms_[1][j][k].Project3D("z"));
       z_histogram->Add(histograms_[2][j][k].Project3D("z"));
       z_histogram->Add(histograms_[3][j][k].Project3D("z"));
       RooDataHist z_data(
@@ -294,7 +296,7 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
     return;
   }
   
-  RooAbsData &data_set = *(model_space->data("data_set"));
+  RooAbsData &fit_data = *(model_space->data("data_set"));
   RooAbsPdf* pp_bs_pdf = model_space->pdf("pp_bs_pdf");
   RooAbsPdf* pp_bd_pdf = model_space->pdf("pp_bd_pdf");
   RooAbsPdf* pp_cw_pdf = model_space->pdf("pp_cw_pdf");
@@ -308,8 +310,8 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   RooAbsPdf* nn_cn_pdf = model_space->pdf("nn_cn_pdf");
   
   std::cout << "Generating data sets for fit." << std::endl;
-  RooDataSet& pp_data = *((RooDataSet*) data_set.reduce(pp_events_cut_ + true_events_cut_));
-  RooDataSet& nn_data = *((RooDataSet*) data_set.reduce(nn_events_cut_ + true_events_cut_));
+  RooDataSet& pp_data = *((RooDataSet*) fit_data.reduce(pp_events_cut_));
+  RooDataSet& nn_data = *((RooDataSet*) fit_data.reduce(nn_events_cut_));
   
   RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.0000e+00, 1.0000e+6);
   RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.0000e+00, 1.0000e+6);
