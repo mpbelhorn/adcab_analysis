@@ -42,6 +42,8 @@ Fit3D::Fit3D(
   //   should be sent to a debug log.
   RooMsgService::instance().getStream(1).removeTopic(RooFit::ObjectHandling);
   RooMsgService::instance().getStream(1).removeTopic(RooFit::Plotting);
+  RooMsgService::instance().getStream(0).removeTopic(RooFit::Minimization);
+  RooMsgService::instance().getStream(1).removeTopic(RooFit::Minimization);
 
   // Define the data set elements and add them to the dataset.
   x_variable_ = new RooRealVar(
@@ -50,9 +52,9 @@ Fit3D::Fit3D(
       "y_variable", y_axis_label, min_y_bin_edge, max_y_bin_edge);
   z_variable_ = new RooRealVar(
       "z_variable", z_axis_label, min_z_bin_edge, max_z_bin_edge);
-  x_variable_->setBins(30);
-  y_variable_->setBins(30);
-  z_variable_->setBins(30);
+  x_variable_->setBins(100);
+  y_variable_->setBins(100);
+  z_variable_->setBins(100);
   std::cout << "Adding new columns to dataset." << std::endl;
   RooArgSet analysis_variables(*x_variable_, *y_variable_, *z_variable_);
   data_set_->printArgs(cout);
@@ -262,7 +264,7 @@ void Fit3D::generateModels()
           name + "_xy_pdf",
           xy_variables,
           xy_data,
-          1);
+          2);
       RooHistPdf z_pdf(
           name + "_z_pdf",
           name + "_z_pdf",
@@ -283,11 +285,7 @@ void Fit3D::generateModels()
 }
 
 void Fit3D::fitData(const TString& filename, const TString& data_set)
-{
-
-  RooMsgService::instance().getStream(0).removeTopic(RooFit::Minimization);
-  RooMsgService::instance().getStream(1).removeTopic(RooFit::Minimization);
-  
+{  
   TFile models_file("models.root", "READ");
   RooWorkspace* model_space = (RooWorkspace*) models_file.Get("model_space");
   
