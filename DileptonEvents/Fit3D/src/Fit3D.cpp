@@ -1,27 +1,5 @@
 #include "Fit3D.h"
 
-
-void plotFitProjection(const RooRealVar &independant_variable, const RooDataSet &data,
-        const RooAbsPdf &model, const TString &filename) {
-  RooPlot* frame = independant_variable.frame();
-  data.plotOn(frame, RooFit::Name("data"));
-  model.plotOn(frame, RooFit::Name("model"), RooFit::LineColor(kBlue));
-  model.plotOn(frame, RooFit::Components("*bs*"),
-      RooFit::LineStyle(kDashed), RooFit::LineWidth(1), RooFit::LineColor(kYellow));
-  model.plotOn(frame, RooFit::Components("*bd*"),
-      RooFit::LineStyle(kDashed), RooFit::LineWidth(1), RooFit::LineColor(kRed));
-  model.plotOn(frame, RooFit::Components("*cw*"),
-      RooFit::LineStyle(kDashed), RooFit::LineWidth(1), RooFit::LineColor(kGreen));
-  model.plotOn(frame, RooFit::Components("*ww*"),
-      RooFit::LineStyle(kDashed), RooFit::LineWidth(1), RooFit::LineColor(kBlue));
-  model.plotOn(frame, RooFit::Components("*cn*"),
-      RooFit::LineStyle(kDashed), RooFit::LineWidth(1), RooFit::LineColor(kCyan));
-
-  TCanvas* c1 = new TCanvas("c1", "Projection", 200, 10, 700, 500);
-  frame->Draw();
-  c1->Print(filename);
-}
-
 Fit3D::Fit3D(
     TString input_ntuple_file,
     TString analysis_name,
@@ -52,9 +30,9 @@ Fit3D::Fit3D(
       "y_variable", y_axis_label, min_y_bin_edge, max_y_bin_edge);
   z_variable_ = new RooRealVar(
       "z_variable", z_axis_label, min_z_bin_edge, max_z_bin_edge);
-  x_variable_->setBins(100);
-  y_variable_->setBins(100);
-  z_variable_->setBins(100);
+  x_variable_->setBins(40);
+  y_variable_->setBins(40);
+  z_variable_->setBins(40);
   std::cout << "Adding new columns to dataset." << std::endl;
   RooArgSet analysis_variables(*x_variable_, *y_variable_, *z_variable_);
   data_set_->printArgs(cout);
@@ -231,7 +209,16 @@ void Fit3D::saveHistograms(const TString& filename)
 void Fit3D::generateModels()
 {
   std::cout << "Generating models..." << endl;
-
+  vector<TCut> component_cuts;
+  component_cuts.push_back(bs_events_cut_);
+  component_cuts.push_back(bd_events_cut_);
+  component_cuts.push_back(cw_events_cut_);
+  component_cuts.push_back(ww_events_cut_);
+  component_cuts.push_back(cn_events_cut_);
+  vector<TCut> sign_cuts;
+  sign_cuts.push_back(nn_events_cut_);
+  sign_cuts.push_back(pn_events_cut_);
+  sign_cuts.push_back(pp_events_cut_);
   RooWorkspace model_space("model_space", "Fit models");
   RooArgList xy_variables(*x_variable_, *y_variable_);
   for (int j = 0; j < tags_.signs_.size(); ++j) {
@@ -241,6 +228,7 @@ void Fit3D::generateModels()
       name.Append(tags_.signs_[j]);
       name.Append("_");
       name.Append(tags_.components_[k]);
+      /*
       TH1* xy_histogram = histograms_[0][j][k].Project3D("yx");
       xy_histogram->Add(histograms_[1][j][k].Project3D("yx"));
       xy_histogram->Add(histograms_[2][j][k].Project3D("yx"));
@@ -250,6 +238,15 @@ void Fit3D::generateModels()
           name + "_xy_data",
           xy_variables,
           xy_histogram);
+      */
+      RooDataSet* xy_raw_data = (RooDataSet*) data_set_->reduce(
+          xy_variables,
+          (component_cuts[k - 1] && sign_cuts[j]));
+      RooDataHist xy_data(
+          name + "_xy_data",
+          name + "_xy_data",
+          xy_variables,
+          *xy_raw_data);
       TH1* z_histogram = histograms_[0][j][k].Project3D("z");
       z_histogram->Add(histograms_[1][j][k].Project3D("z"));
       z_histogram->Add(histograms_[2][j][k].Project3D("z"));
@@ -264,7 +261,7 @@ void Fit3D::generateModels()
           name + "_xy_pdf",
           xy_variables,
           xy_data,
-          2);
+          6);
       RooHistPdf z_pdf(
           name + "_z_pdf",
           name + "_z_pdf",
@@ -273,6 +270,8 @@ void Fit3D::generateModels()
           2);
       RooProdPdf pdf(name + "_pdf", name + "_pdf", xy_pdf, z_pdf);
       model_space.import(pdf);
+      delete xy_raw_data;
+      delete z_histogram;
     }
   }
   
@@ -308,8 +307,8 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   RooAbsPdf* nn_cn_pdf = model_space->pdf("nn_cn_pdf");
   
   std::cout << "Generating data sets for fit." << std::endl;
-  RooDataSet& pp_data = *((RooDataSet*) fit_data.reduce(pp_events_cut_));
-  RooDataSet& nn_data = *((RooDataSet*) fit_data.reduce(nn_events_cut_));
+  RooDataSet& pp_data = *((RooDataSet*) fit_data.reduce(pp_events_cut_ + TCut("event_species == event_species::elel || event_species == event_species::mumu")));
+  RooDataSet& nn_data = *((RooDataSet*) fit_data.reduce(nn_events_cut_ + TCut("event_species == event_species::elel || event_species == event_species::mumu")));
   
   RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.0000e+00, 1.0000e+6);
   RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.0000e+00, 1.0000e+6);
@@ -392,7 +391,8 @@ void Fit3D::plotFitAccuracy(
   }
   if (!bs_fit) {
     // Error. Quit while ahead.
-    cout << "Error in plotFitAccuracy(): Cannot find fit variables. Check names are valid."
+    cout << "Error in plotFitAccuracy(): "
+         << "Cannot find fit variables. Check names are valid."
          << endl;
     return;
   }
@@ -434,4 +434,39 @@ void Fit3D::plotFitAccuracy(
 
   c1.Print(filename);
   return;
+}
+
+void Fit3D::plotFitProjection(
+    const RooRealVar &independant_variable,
+    const RooDataSet &data,
+    const RooAbsPdf &model,
+    const TString &filename)
+{
+  RooPlot* frame = independant_variable.frame();
+  data.plotOn(frame, RooFit::Name("data"));
+  model.plotOn(frame, RooFit::Name("model"), RooFit::LineColor(kBlue));
+  model.plotOn(frame, RooFit::Components("*bs*"),
+      RooFit::LineStyle(kDashed),
+      RooFit::LineWidth(1),
+      RooFit::LineColor(kYellow));
+  model.plotOn(frame, RooFit::Components("*bd*"),
+      RooFit::LineStyle(kDashed),
+      RooFit::LineWidth(1),
+      RooFit::LineColor(kRed));
+  model.plotOn(frame, RooFit::Components("*cw*"),
+      RooFit::LineStyle(kDashed),
+      RooFit::LineWidth(1),
+      RooFit::LineColor(kGreen));
+  model.plotOn(frame, RooFit::Components("*ww*"),
+      RooFit::LineStyle(kDashed),
+      RooFit::LineWidth(1),
+      RooFit::LineColor(kBlue));
+  model.plotOn(frame, RooFit::Components("*cn*"),
+      RooFit::LineStyle(kDashed),
+      RooFit::LineWidth(1),
+      RooFit::LineColor(kCyan));
+
+  TCanvas* c1 = new TCanvas("c1", "Projection", 200, 10, 700, 500);
+  frame->Draw();
+  c1->Print(filename);
 }
