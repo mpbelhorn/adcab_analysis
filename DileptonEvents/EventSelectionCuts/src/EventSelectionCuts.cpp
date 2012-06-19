@@ -6,6 +6,10 @@ EventSelectionCuts::EventSelectionCuts(
   : DileptonEvents(input_ntuple_file, analysis_name)
 {
   std::cout << "Initiliazing EventSelectionCuts class." << std::endl;
+  // For some reason the output file needs to be made before the cloned
+  //   TTree. I don't know why or how this is true.
+  TString output_file_name = input_ntuple_file_ + TString(".postbasf.root");
+  output_file_ = new TFile(output_file_name, "recreate");
   output_ntuple_ = fChain->CloneTree(0);
 }
 
@@ -28,8 +32,6 @@ void EventSelectionCuts::ntupleLoopCore()
 
 void EventSelectionCuts::saveNewNtuple()
 {
-  TString output_file_name = input_ntuple_file_ + TString(".postbasf.root");
-  TFile output_file(output_file_name, "recreate");
   output_ntuple_->AutoSave();
 }
 

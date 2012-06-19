@@ -40,6 +40,7 @@ class EventSelectionCuts : public DileptonEvents {
   bool passes_cm_momentum();
   bool passes_lepton_opening_angle();
   
+  TFile* output_file_;
   TTree* output_ntuple_;
   BasfCutValues cuts_;
 };
