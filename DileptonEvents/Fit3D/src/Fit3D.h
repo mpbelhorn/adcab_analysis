@@ -38,7 +38,7 @@ class Fit3D : public DileptonEvents {
       double max_z_bin_edge = 1);
   ~Fit3D();
 
-  void ntupleLoopCore();
+  void ntupleLoopCore(const int& entry_id = 0);
   void initializeDataSet(
       const TString &x_variable_name,
       const TString &y_variable_name,
