@@ -1,4 +1,4 @@
-EXEC = Fit3d
+EXEC = Fit3d.so
 SRC = Fit3D.cpp main.cpp
 OBJECTS = $(patsubst %.cpp,%.o,$(SRC))
 
