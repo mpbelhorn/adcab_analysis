@@ -16,7 +16,7 @@ EventSelectionCuts::EventSelectionCuts(
 
 EventSelectionCuts::~EventSelectionCuts()
 {
-  delete output_ntuple_;
+  // delete output_ntuple_;
 }
 
 void EventSelectionCuts::ntupleLoopCore(const int& entry_id)
@@ -33,6 +33,7 @@ void EventSelectionCuts::ntupleLoopCore(const int& entry_id)
 void EventSelectionCuts::saveNewNtuple()
 {
   output_ntuple_->Write();
+  output_file_->Close();
 }
 
 bool EventSelectionCuts::passes_hadronb()

@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
   SelectBestCandidates best_candidate_selection(
       TString(argv[1]) + TString(".postbasf.root"), argv[2]);
   best_candidate_selection.processNtuple();
+  best_candidate_selection.isolateBestCandidates();
   best_candidate_selection.saveNewNtuple();
   
   return 0;

@@ -16,7 +16,7 @@ SelectBestCandidates::SelectBestCandidates(
 
 SelectBestCandidates::~SelectBestCandidates()
 {
-  delete output_ntuple_;
+  // delete output_ntuple_;
 }
 
 void SelectBestCandidates::ntupleLoopCore(const int& entry_id)
@@ -27,7 +27,6 @@ void SelectBestCandidates::ntupleLoopCore(const int& entry_id)
       floatToString(run_no) + 
       floatToString(evt_no);
   
-  std::cout << event_candidate_id << std::endl;
   EventCandidate event_candidate;
   event_candidate.entry = entry_id;
   event_candidate.momentum = l0_pcm + l1_pcm;
@@ -42,7 +41,6 @@ void SelectBestCandidates::isolateBestCandidates()
   for (unique_event = unique_events_.begin();
       unique_event != unique_events_.end(); ++unique_event) {
     EventCandidates &event_candidates = unique_event->second;
-    
     int number_of_candidates = event_candidates.size();
 
     EventCandidate best_candidate;
