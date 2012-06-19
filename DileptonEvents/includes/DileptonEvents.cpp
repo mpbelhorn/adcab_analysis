@@ -214,12 +214,12 @@ void DileptonEvents::processNtuple()
       nb = fChain->GetEntry(jth_entry);
       nbytes += nb;
       // if (Cut(ith_entry) < 0) continue;
-      ntupleLoopCore();
+      ntupleLoopCore(jth_entry);
    }
    std::cout << "Finished!" << std::endl;
 }
 
-void DileptonEvents::ntupleLoopCore()
+void DileptonEvents::ntupleLoopCore(const int& entry_id)
 {
   // Intentionally blank.
   // This is the set of commands run on each entry in the Ntuple. It is
