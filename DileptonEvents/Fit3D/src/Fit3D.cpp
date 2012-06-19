@@ -293,7 +293,7 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
     return;
   }
   
-  RooAbsData &fit_data = *(model_space->data("data_set"));
+  RooAbsData &fit_data = *data_set_;
   RooAbsPdf* pp_bs_pdf = model_space->pdf("pp_bs_pdf");
   RooAbsPdf* pp_bd_pdf = model_space->pdf("pp_bd_pdf");
   RooAbsPdf* pp_cw_pdf = model_space->pdf("pp_cw_pdf");
@@ -307,8 +307,8 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   RooAbsPdf* nn_cn_pdf = model_space->pdf("nn_cn_pdf");
   
   std::cout << "Generating data sets for fit." << std::endl;
-  RooDataSet& pp_data = *((RooDataSet*) fit_data.reduce(pp_events_cut_ + TCut("event_species == event_species::elel || event_species == event_species::mumu")));
-  RooDataSet& nn_data = *((RooDataSet*) fit_data.reduce(nn_events_cut_ + TCut("event_species == event_species::elel || event_species == event_species::mumu")));
+  RooDataSet& pp_data = *((RooDataSet*) fit_data.reduce(pp_events_cut_));
+  RooDataSet& nn_data = *((RooDataSet*) fit_data.reduce(nn_events_cut_));
   
   RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.0000e+00, 1.0000e+6);
   RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.0000e+00, 1.0000e+6);
