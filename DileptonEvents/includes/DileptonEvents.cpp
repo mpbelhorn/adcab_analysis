@@ -211,7 +211,8 @@ void DileptonEvents::processNtuple()
    for (Long64_t jth_entry = 0; jth_entry < nentries; jth_entry++) {
       Long64_t ith_entry = loadTree(jth_entry);
       if (ith_entry < 0) break;
-      nb = fChain->GetEntry(jth_entry);   nbytes += nb;
+      nb = fChain->GetEntry(jth_entry);
+      nbytes += nb;
       // if (Cut(ith_entry) < 0) continue;
       ntupleLoopCore();
    }

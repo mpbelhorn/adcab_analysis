@@ -1,5 +1,5 @@
-EXEC = Fit3d.so
-SRC = Fit3D.cpp main.cpp
+EXEC = EventSelectionCuts.so
+SRC = EventSelectionCuts.cpp main.cpp
 OBJECTS = $(patsubst %.cpp,%.o,$(SRC))
 
 SHARE_SRC = DileptonEvents.cpp EventSelectors.cpp
