@@ -1,5 +1,5 @@
-EXEC = Fit3d
-SRC = Fit3D.cpp main.cpp
+EXEC = EventSelectionCuts.so
+SRC = EventSelectionCuts.cpp main.cpp
 OBJECTS = $(patsubst %.cpp,%.o,$(SRC))
 
 SHARE_SRC = DileptonEvents.cpp EventSelectors.cpp
@@ -19,4 +19,4 @@ $(EXEC): $(OBJECTS) $(SHARE_OBJECTS)
 	$(CC) $(CFLAGS) -I$(SHARE_DIR) -c $< -o $@
 
 clean: 
-	rm -rf *.o a.out 
+	rm -rf *.o *.so a.out 
