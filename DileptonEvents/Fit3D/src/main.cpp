@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
   psum_loa_dz_fit.saveDataSet();
   
   // Generate models.
-  psum_loa_dz_fit.generateModels();
+  // psum_loa_dz_fit.generateModels();
   
   // Fit data.
   psum_loa_dz_fit.fitData();
