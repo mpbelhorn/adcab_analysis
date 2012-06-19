@@ -8,7 +8,8 @@ int main(int argc, char *argv[])
               << std::endl;
     return 1;
   }
-  
-
+  EventSelectionCuts basf_cuts(argv[1], argv[2]);
+  basf_cuts.processNtuple();
+  basf_cuts.saveNewNtuple();
   return 0;
 }
