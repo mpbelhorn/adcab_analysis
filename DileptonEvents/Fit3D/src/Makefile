@@ -1,4 +1,4 @@
-EXEC = Fit3d
+EXEC = Fit3d.so
 SRC = Fit3D.cpp main.cpp
 OBJECTS = $(patsubst %.cpp,%.o,$(SRC))
 
@@ -19,4 +19,4 @@ $(EXEC): $(OBJECTS) $(SHARE_OBJECTS)
 	$(CC) $(CFLAGS) -I$(SHARE_DIR) -c $< -o $@
 
 clean: 
-	rm -rf *.o a.out 
+	rm -rf *.o *.so a.out 
