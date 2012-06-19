@@ -81,7 +81,7 @@ Fit3D::~Fit3D()
   // delete y_variable_;
 }
 
-void Fit3D::ntupleLoopCore()
+void Fit3D::ntupleLoopCore(const int& entry_id)
 {
   x_value_ = l0_pcm + l1_pcm;
   y_value_ = cos_thta;

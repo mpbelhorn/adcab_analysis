@@ -159,7 +159,9 @@ class DileptonEvents {
   virtual Long64_t loadTree(Long64_t entry);
   virtual void  init(TTree *tree);
   virtual void  processNtuple();
-  virtual void  ntupleLoopCore();
+  // TODO: replace argument below with something like GetIndex for 
+  //   derived classes that need it.
+  virtual void  ntupleLoopCore(const int& entry_id = 0);
   virtual bool  notify();
   virtual void  show(Long64_t entry = -1);
   

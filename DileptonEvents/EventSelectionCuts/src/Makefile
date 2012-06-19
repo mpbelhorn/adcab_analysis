@@ -1,5 +1,5 @@
-EXEC = EventSelectionCuts.so
-SRC = EventSelectionCuts.cpp main.cpp
+EXEC = BasfLevelCuts.so
+SRC = EventSelectionCuts.cpp SelectBestCandidates.cpp main.cpp
 OBJECTS = $(patsubst %.cpp,%.o,$(SRC))
 
 SHARE_SRC = DileptonEvents.cpp EventSelectors.cpp

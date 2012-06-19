@@ -31,7 +31,7 @@ class EventSelectionCuts : public DileptonEvents {
       TString analysis_name);
   ~EventSelectionCuts();
 
-  void ntupleLoopCore();
+  void ntupleLoopCore(const int& entry_id);
   void saveNewNtuple();
   
   bool passes_hadronb();

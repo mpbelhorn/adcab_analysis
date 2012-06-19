@@ -16,10 +16,10 @@ EventSelectionCuts::EventSelectionCuts(
 
 EventSelectionCuts::~EventSelectionCuts()
 {
-  delete output_ntuple_;
+  // delete output_ntuple_;
 }
 
-void EventSelectionCuts::ntupleLoopCore()
+void EventSelectionCuts::ntupleLoopCore(const int& entry_id)
 {
   if (passes_hadronb() &&
       passes_fox_wolfram_r2() &&
@@ -32,7 +32,8 @@ void EventSelectionCuts::ntupleLoopCore()
 
 void EventSelectionCuts::saveNewNtuple()
 {
-  output_ntuple_->AutoSave();
+  output_ntuple_->Write();
+  output_file_->Close();
 }
 
 bool EventSelectionCuts::passes_hadronb()
