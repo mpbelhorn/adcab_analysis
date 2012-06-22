@@ -30,8 +30,8 @@ Fit3D::Fit3D(
       "y_variable", y_axis_label, min_y_bin_edge, max_y_bin_edge);
   z_variable_ = new RooRealVar(
       "z_variable", z_axis_label, min_z_bin_edge, max_z_bin_edge);
-  x_variable_->setBins(20);
-  y_variable_->setBins(20);
+  x_variable_->setBins(30);
+  y_variable_->setBins(30);
   z_variable_->setBins(30);
   std::cout << "Adding new columns to dataset." << std::endl;
   RooArgSet analysis_variables(*x_variable_, *y_variable_, *z_variable_);
@@ -261,7 +261,7 @@ void Fit3D::generateModels()
           name + "_xy_pdf",
           xy_variables,
           xy_data,
-          6);
+          2);
       RooHistPdf z_pdf(
           name + "_z_pdf",
           name + "_z_pdf",
