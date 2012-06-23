@@ -228,7 +228,6 @@ void Fit3D::generateModels()
       name.Append(tags_.signs_[j]);
       name.Append("_");
       name.Append(tags_.components_[k]);
-      /*
       TH1* xy_histogram = histograms_[0][j][k].Project3D("yx");
       xy_histogram->Add(histograms_[1][j][k].Project3D("yx"));
       xy_histogram->Add(histograms_[2][j][k].Project3D("yx"));
@@ -238,7 +237,7 @@ void Fit3D::generateModels()
           name + "_xy_data",
           xy_variables,
           xy_histogram);
-      */
+      /*
       RooDataSet* xy_raw_data = (RooDataSet*) data_set_->reduce(
           xy_variables,
           (component_cuts[k - 1] && sign_cuts[j]));
@@ -247,6 +246,7 @@ void Fit3D::generateModels()
           name + "_xy_data",
           xy_variables,
           *xy_raw_data);
+      */
       TH1* z_histogram = histograms_[0][j][k].Project3D("z");
       z_histogram->Add(histograms_[1][j][k].Project3D("z"));
       z_histogram->Add(histograms_[2][j][k].Project3D("z"));
@@ -270,7 +270,7 @@ void Fit3D::generateModels()
           2);
       RooProdPdf pdf(name + "_pdf", name + "_pdf", xy_pdf, z_pdf);
       model_space.import(pdf);
-      delete xy_raw_data;
+      delete xy_histogram;
       delete z_histogram;
     }
   }
@@ -397,6 +397,12 @@ void Fit3D::plotFitAccuracy(
     return;
   }
 
+  std::cout << n_true_bd << std::endl;
+  std::cout << n_true_bs << std::endl;
+  std::cout << n_true_cn << std::endl;
+  std::cout << n_true_cw << std::endl;
+  std::cout << n_true_ww << std::endl;
+  
   TCanvas c1("c1", title, 200, 10, 700, 500);
   c1.SetGrid();
   double x[5] = {1, 2, 3, 4, 5};
@@ -449,21 +455,31 @@ void Fit3D::plotFitProjection(
       RooFit::LineStyle(kDashed),
       RooFit::LineWidth(1),
       RooFit::LineColor(kYellow));
+  data.plotOn(frame, RooFit::Cut(bs_events_cut_),
+      RooFit::LineColor(kYellow));
   model.plotOn(frame, RooFit::Components("*bd*"),
       RooFit::LineStyle(kDashed),
       RooFit::LineWidth(1),
+      RooFit::LineColor(kRed));
+  data.plotOn(frame, RooFit::Cut(bd_events_cut_),
       RooFit::LineColor(kRed));
   model.plotOn(frame, RooFit::Components("*cw*"),
       RooFit::LineStyle(kDashed),
       RooFit::LineWidth(1),
       RooFit::LineColor(kGreen));
+  data.plotOn(frame, RooFit::Cut(cw_events_cut_),
+      RooFit::LineColor(kGreen));
   model.plotOn(frame, RooFit::Components("*ww*"),
       RooFit::LineStyle(kDashed),
       RooFit::LineWidth(1),
       RooFit::LineColor(kBlue));
+  data.plotOn(frame, RooFit::Cut(ww_events_cut_),
+      RooFit::LineColor(kBlue));
   model.plotOn(frame, RooFit::Components("*cn*"),
       RooFit::LineStyle(kDashed),
       RooFit::LineWidth(1),
+      RooFit::LineColor(kCyan));
+  data.plotOn(frame, RooFit::Cut(cn_events_cut_),
       RooFit::LineColor(kCyan));
 
   TCanvas* c1 = new TCanvas("c1", "Projection", 200, 10, 700, 500);
