@@ -2,9 +2,9 @@
 
 int main(int argc, char *argv[])
 {
-  if (argc != 3) {
+  if (argc != 4) {
     std::cout << "Not enough arguments. Usage:" << std::endl
-              << "Fit3D input_ntuple analysis_name" 
+              << "Fit3D input_ntuple analysis_name run_mode" 
               << std::endl;
     return 1;
   }
@@ -25,11 +25,16 @@ int main(int argc, char *argv[])
   psum_loa_dz_fit.saveDataSet();
   
   // Generate models.
-  // psum_loa_dz_fit.generateModels();
-  
-  // Fit data.
-  psum_loa_dz_fit.fitData();
-  
+  if (*argv[3] == 'g') {
+    psum_loa_dz_fit.generateModels();
+  }
+  else if (*argv[3] == 'f') {
+    psum_loa_dz_fit.fitData();
+  }
+  else {
+    std::cout << "Fit/generate flags not set! Third argument should be "
+              << "(g)enerate or (f)it." << std::endl;
+  }
   
   return 0;
 }
