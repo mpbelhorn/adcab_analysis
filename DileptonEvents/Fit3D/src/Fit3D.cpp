@@ -4,12 +4,15 @@ Fit3D::Fit3D(
     TString input_ntuple_file,
     TString analysis_name,
     TString x_axis_label,
+    TString x_axis_unit,
     double min_x_bin_edge,
     double max_x_bin_edge,
     TString y_axis_label,
+    TString y_axis_unit,
     double min_y_bin_edge,
     double max_y_bin_edge,
     TString z_axis_label,
+    TString z_axis_unit,
     double min_z_bin_edge,
     double max_z_bin_edge)
   : DileptonEvents(input_ntuple_file, analysis_name)
@@ -25,11 +28,11 @@ Fit3D::Fit3D(
 
   // Define the data set elements and add them to the dataset.
   x_variable_ = new RooRealVar(
-      "x_variable", x_axis_label, min_x_bin_edge, max_x_bin_edge);
+      "x_variable", x_axis_label, min_x_bin_edge, max_x_bin_edge, x_axis_unit);
   y_variable_ = new RooRealVar(
-      "y_variable", y_axis_label, min_y_bin_edge, max_y_bin_edge);
+      "y_variable", y_axis_label, min_y_bin_edge, max_y_bin_edge, y_axis_unit);
   z_variable_ = new RooRealVar(
-      "z_variable", z_axis_label, min_z_bin_edge, max_z_bin_edge);
+      "z_variable", z_axis_label, min_z_bin_edge, max_z_bin_edge, z_axis_unit);
   x_variable_->setBins(30);
   y_variable_->setBins(30);
   z_variable_->setBins(30);

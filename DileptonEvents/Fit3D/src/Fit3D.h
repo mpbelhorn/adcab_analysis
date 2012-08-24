@@ -13,7 +13,7 @@
 #include "RooFitResult.h"
 #include "RooPlot.h"
 #include "TH3.h"
-#include "TList.h"
+#include "TLatex.h"
 #include "TGraphAsymmErrors.h"
 #include <vector>
 #include <iostream>
@@ -26,15 +26,18 @@ typedef vector<HistogramListOverEventSigns> HistogramListOverEventSpecies;
 class Fit3D : public DileptonEvents {
  public:
   Fit3D(
-      TString input_ntuple_file="default.root",
-      TString analysis_name="UnspecifiedAnalysis",
+      TString input_ntuple_file = "default.root",
+      TString analysis_name = "UnspecifiedAnalysis",
       TString x_axis_label = "x variable",
+      TString x_axis_unit = "",
       double min_x_bin_edge = 0,
       double max_x_bin_edge = 1,
       TString y_axis_label = "y variable",
+      TString y_axis_unit = "",
       double min_y_bin_edge = 0,
       double max_y_bin_edge = 1,
       TString z_axis_label = "z variable",
+      TString z_axis_unit = "",
       double min_z_bin_edge = 0,
       double max_z_bin_edge = 1);
   ~Fit3D();
