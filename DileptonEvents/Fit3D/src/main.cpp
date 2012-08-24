@@ -1,11 +1,15 @@
 #include "Fit3D.h"
+#include <stdio.h>
 
 int main(int argc, char *argv[])
 {
+freopen ("myfile.txt","w",stdout);
+
   if (argc != 4) {
     std::cout << "Not enough arguments. Usage:" << std::endl
               << "Fit3D input_ntuple analysis_name run_mode" 
               << std::endl;
+    fclose (stdout);
     return 1;
   }
   
@@ -36,5 +40,7 @@ int main(int argc, char *argv[])
               << "(g)enerate or (f)it." << std::endl;
   }
   
+  fclose (stdout);
   return 0;
+  
 }
