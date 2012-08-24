@@ -13,6 +13,7 @@
 #include "RooFitResult.h"
 #include "RooPlot.h"
 #include "TH3.h"
+#include "TList.h"
 #include "TGraphAsymmErrors.h"
 #include <vector>
 #include <iostream>
@@ -53,7 +54,7 @@ class Fit3D : public DileptonEvents {
   void fillHistograms(const int& component);
   void drawHistograms();
   void saveHistograms(const TString& filename = "histograms.root");
-  void generateModels();
+  void generateModels(const int& interpolation_order = 0);
   void fitData(
       const TString& filename = "data.root",
       const TString& data_set = "data_set");
