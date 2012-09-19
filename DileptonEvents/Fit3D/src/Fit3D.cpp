@@ -96,8 +96,7 @@ void Fit3D::ntupleLoopCore(const int& entry_id)
   
   AnalysisSelectors cuts(*this);
   fillDataSet(cuts.signal_type());
-  fillHistograms(cuts.signal_type());
-  
+  fillHistograms(cuts.signal_type());  
 }
 
 void Fit3D::fillDataSet(const int &component)
@@ -329,14 +328,25 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   
   plotFitAccuracy(pp_data, *pp_fit_results);
   plotFitAccuracy(nn_data, *nn_fit_results);
-  plotFitProjection(*x_variable_, pp_data, pp_model, "pp_x_fit.eps");
-  plotFitProjection(*y_variable_, pp_data, pp_model, "pp_y_fit.eps");
-  plotFitProjection(*z_variable_, pp_data, pp_model, "pp_z_fit.eps");
-  plotFitProjection(*x_variable_, nn_data, nn_model, "nn_x_fit.eps");
-  plotFitProjection(*y_variable_, nn_data, nn_model, "nn_y_fit.eps");
-  plotFitProjection(*z_variable_, nn_data, nn_model, "nn_z_fit.eps");
+  plotFitProjection(*x_variable_, pp_data, *pp_fit_results, pp_model,
+      *pp_bs_pdf, *pp_bd_pdf, *pp_cw_pdf, *pp_ww_pdf, *pp_cn_pdf,
+      "pp_x_fit.eps");
+  plotFitProjection(*y_variable_, pp_data, *pp_fit_results, pp_model,
+      *pp_bs_pdf, *pp_bd_pdf, *pp_cw_pdf, *pp_ww_pdf, *pp_cn_pdf,
+      "pp_y_fit.eps");
+  plotFitProjection(*z_variable_, pp_data, *pp_fit_results, pp_model,
+      *pp_bs_pdf, *pp_bd_pdf, *pp_cw_pdf, *pp_ww_pdf, *pp_cn_pdf,
+      "pp_z_fit.eps");
+  plotFitProjection(*x_variable_, nn_data, *nn_fit_results, nn_model,
+      *nn_bs_pdf, *nn_bd_pdf, *nn_cw_pdf, *nn_ww_pdf, *nn_cn_pdf,
+      "nn_x_fit.eps");
+  plotFitProjection(*y_variable_, nn_data, *nn_fit_results, nn_model,
+      *nn_bs_pdf, *nn_bd_pdf, *nn_cw_pdf, *nn_ww_pdf, *nn_cn_pdf,
+      "nn_y_fit.eps");
+  plotFitProjection(*z_variable_, nn_data, *nn_fit_results, nn_model,
+      *nn_bs_pdf, *nn_bd_pdf, *nn_cw_pdf, *nn_ww_pdf, *nn_cn_pdf,
+      "nn_z_fit.eps");
 }
-
 
 void Fit3D::plotFitAccuracy(
     const RooDataSet& mc_data,
@@ -431,51 +441,85 @@ void Fit3D::plotFitAccuracy(
 void Fit3D::plotFitProjection(
     const RooRealVar &independant_variable,
     const RooDataSet &data,
+    const RooFitResult& fit,
     const RooAbsPdf &model,
+    const RooAbsPdf &bs_pdf,
+    const RooAbsPdf &bd_pdf,
+    const RooAbsPdf &cw_pdf,
+    const RooAbsPdf &ww_pdf,
+    const RooAbsPdf &cn_pdf,
     const TString &filename)
 {
   RooPlot* frame = independant_variable.frame();
   TString frame_title = "Fit Projection on ";
   frame_title.Append(independant_variable.GetTitle());
   frame->SetTitle(frame_title);
+  
+  RooRealVar* bs_fit = (RooRealVar*) fit.floatParsFinal().find("n_bs_pp");
+  RooRealVar* bd_fit = (RooRealVar*) fit.floatParsFinal().find("n_bd_pp");
+  RooRealVar* cw_fit = (RooRealVar*) fit.floatParsFinal().find("n_cw_pp");
+  RooRealVar* ww_fit = (RooRealVar*) fit.floatParsFinal().find("n_ww_pp");
+  RooRealVar* cn_fit = (RooRealVar*) fit.floatParsFinal().find("n_cn_pp");
+  
+  if (!bs_fit) {
+    bs_fit = (RooRealVar*) fit.floatParsFinal().find("n_bs_nn");
+    bd_fit = (RooRealVar*) fit.floatParsFinal().find("n_bd_nn");
+    cw_fit = (RooRealVar*) fit.floatParsFinal().find("n_cw_nn");
+    ww_fit = (RooRealVar*) fit.floatParsFinal().find("n_ww_nn");
+    cn_fit = (RooRealVar*) fit.floatParsFinal().find("n_cn_nn");
+  }
+  if (!bs_fit) {
+    // Error. Quit while ahead.
+    cout << "Error in plotFitAccuracy(): "
+         << "Cannot find fit variables. Check names are valid."
+         << endl;
+    return;
+  }
+  
   data.plotOn(frame, RooFit::Name("data"));
-  model.plotOn(frame, RooFit::Name("model"), RooFit::LineColor(kBlue));
-  model.plotOn(frame, RooFit::Components("*bs*"),
+  // model.plotOn(frame, RooFit::Name("model"), RooFit::LineColor(kBlue));
+  bs_pdf.plotOn(frame,
+      RooFit::Normalization(bs_fit->getVal(), RooAbsReal::NumEvent),
       RooFit::LineStyle(kDashed),
       RooFit::LineWidth(1),
       RooFit::LineColor(kYellow + 2));
   data.plotOn(frame, RooFit::Cut(bs_events_cut_),
       RooFit::LineColor(kYellow),
       RooFit::MarkerStyle(kFullDotMedium));
-  model.plotOn(frame, RooFit::Components("*bd*"),
+  
+  bd_pdf.plotOn(frame,
+      RooFit::Normalization(bd_fit->getVal(), RooAbsReal::NumEvent),
       RooFit::LineStyle(kDashed),
       RooFit::LineWidth(1),
       RooFit::LineColor(kRed + 2));
   data.plotOn(frame, RooFit::Cut(bd_events_cut_),
       RooFit::LineColor(kRed),
       RooFit::MarkerStyle(kFullDotMedium));
-  model.plotOn(frame, RooFit::Components("*cw*"),
+  cw_pdf.plotOn(frame,
+      RooFit::Normalization(cw_fit->getVal(), RooAbsReal::NumEvent),
       RooFit::LineStyle(kDashed),
       RooFit::LineWidth(1),
       RooFit::LineColor(kGreen + 2));
   data.plotOn(frame, RooFit::Cut(cw_events_cut_),
       RooFit::LineColor(kGreen),
       RooFit::MarkerStyle(kFullDotMedium));
-  model.plotOn(frame, RooFit::Components("*ww*"),
+  ww_pdf.plotOn(frame,
+      RooFit::Normalization(ww_fit->getVal(), RooAbsReal::NumEvent),
       RooFit::LineStyle(kDashed),
       RooFit::LineWidth(1),
       RooFit::LineColor(kBlue + 2));
   data.plotOn(frame, RooFit::Cut(ww_events_cut_),
       RooFit::LineColor(kBlue),
       RooFit::MarkerStyle(kFullDotMedium));
-  model.plotOn(frame, RooFit::Components("*cn*"),
+  cn_pdf.plotOn(frame,
+      RooFit::Normalization(cn_fit->getVal(), RooAbsReal::NumEvent),
       RooFit::LineStyle(kDashed),
       RooFit::LineWidth(1),
       RooFit::LineColor(kCyan + 2));
   data.plotOn(frame, RooFit::Cut(cn_events_cut_),
       RooFit::LineColor(kCyan),
       RooFit::MarkerStyle(kFullDotMedium));
-
+      
   TCanvas* c1 = new TCanvas("c1", "Projection", 200, 10, 700, 500);
   frame->Draw();
   c1->Print(filename);

@@ -1,39 +1,75 @@
 #include "Fit3D.h"
+#include <boost/program_options.hpp>
 
-int main(int argc, char *argv[])
+namespace po = boost::program_options;
+
+int main(int ac, char *av[])
 {
-  if (argc != 4) {
-    std::cout << "Not enough arguments. Usage:" << std::endl
-              << "Fit3D input_ntuple analysis_name run_mode" 
-              << std::endl;
+  bool generate_flag = false;
+  bool fit_flag = false;
+  
+  // Declare the CLI options and parameters.
+  po::options_description desc("Allowed options");
+  desc.add_options()
+      ("input-file", po::value<string>(), "Path to input ROOT nuptle")
+      ("help,h", "produce this help message and exit")
+      ("name,n", po::value<string>()->default_value("unnamed"),
+          "Name of the processed data")
+      ("generate,g", po::bool_switch(&generate_flag),
+          "Generate PDFs from input data")
+      ("fit,f", po::bool_switch(&fit_flag), "Fit data to generated PDFs");
+  
+  po::positional_options_description pos;
+  pos.add("input-file", 1);
+  
+  po::variables_map vm;
+  po::store(po::command_line_parser(ac, av).
+      options(desc).positional(pos).run(), vm);
+  po::notify(vm);    
+
+  if (vm.count("help")) {
+    std::cout << "Usage: Fit3D [options] input-file\n";
+    std::cout << desc << "\n";
+    return 1;
+  }
+
+  if (vm.count("input-file") != 1) {
+    std::cout << "Input file specified incorrectly!\n";
+    std::cout << "Usage: Fit3D [options] input-file\n";
+
+    return 1;
+  }
+  
+  if (!(fit_flag || generate_flag)) {
+    std::cout << "Specify at least one of the flags 'fit' or 'generate'.\n";
     return 1;
   }
   
   // Process ntuple: generate plots and dataset.
-  Fit3D psum_loa_dz_fit(argv[1], argv[2],
+  Fit3D fitter(
+      vm["input-file"].as<string>(),
+      vm["name"].as<string>(),
       "|p_{0}| + |p_{1}|", "GeV/c", 2.0, 5.25,
       "Cos(#theta_{ll})", "", -0.80, 0.98,
       "#Delta z", "cm", 0, .2);
 
   // Process raw data.
-  psum_loa_dz_fit.setCreateDataSet(true);
-  psum_loa_dz_fit.processNtuple();
+  fitter.setCreateDataSet(true);
+  fitter.processNtuple();
 
   // Save processed data.
-  psum_loa_dz_fit.drawHistograms();
-  psum_loa_dz_fit.saveHistograms();
-  psum_loa_dz_fit.saveDataSet();
+  fitter.drawHistograms();
+  fitter.saveHistograms();
+  fitter.saveDataSet();
   
-  // Generate models.
-  if (*argv[3] == 'g') {
-    psum_loa_dz_fit.generateModels(0);
+  // Generate models, if requested.
+  if (generate_flag) {
+    fitter.generateModels(0);
   }
-  else if (*argv[3] == 'f') {
-    psum_loa_dz_fit.fitData();
-  }
-  else {
-    std::cout << "Fit/generate flags not set! Third argument should be "
-              << "(g)enerate or (f)it." << std::endl;
+  
+  // Fit data, if requested.
+  if (fit_flag) {
+    fitter.fitData();
   }
   
   return 0;

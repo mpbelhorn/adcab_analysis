@@ -65,10 +65,16 @@ class Fit3D : public DileptonEvents {
       const RooDataSet& mc_data,
       const RooFitResult& fit);
   void plotFitProjection(
-    const RooRealVar &independant_variable,
-    const RooDataSet &data,
-    const RooAbsPdf &model,
-    const TString &filename);
+      const RooRealVar &independant_variable,
+      const RooDataSet &data,
+      const RooFitResult& fit,
+      const RooAbsPdf &model,
+      const RooAbsPdf &bs_pdf,
+      const RooAbsPdf &bd_pdf,
+      const RooAbsPdf &cw_pdf,
+      const RooAbsPdf &ww_pdf,
+      const RooAbsPdf &cn_pdf,
+      const TString &filename);
   
   float x_value_;
   float y_value_;
