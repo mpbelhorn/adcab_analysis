@@ -284,7 +284,7 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   RooAbsPdf* nn_ww_pdf = model_space->pdf("nn_ww_pdf");
   RooAbsPdf* nn_cn_pdf = model_space->pdf("nn_cn_pdf");
   
-  std::cout << "Generating data sets for fit." << std::endl;
+  std::cout << "Organizing data sets for fit." << std::endl;
   RooDataSet& pp_data = *((RooDataSet*) fit_data.reduce(pp_events_cut_));
   RooDataSet& nn_data = *((RooDataSet*) fit_data.reduce(nn_events_cut_));
   
@@ -369,7 +369,7 @@ void Fit3D::plotFitAccuracy(
   RooRealVar* cn_fit = (RooRealVar*) fit.floatParsFinal().find("n_cn_pp");
   
   TString title("Fit Accuracy (N^{++}_{fit}-N^{++}_{true})");
-  TString filename("fit_accuracy_pp.eps");
+  TString filename("fit_accuracy_pp.C");
   if (!bs_fit) {
     bs_fit = (RooRealVar*) fit.floatParsFinal().find("n_bs_nn");
     bd_fit = (RooRealVar*) fit.floatParsFinal().find("n_bd_nn");
@@ -377,7 +377,7 @@ void Fit3D::plotFitAccuracy(
     ww_fit = (RooRealVar*) fit.floatParsFinal().find("n_ww_nn");
     cn_fit = (RooRealVar*) fit.floatParsFinal().find("n_cn_nn");
     title = TString("Fit Accuracy (N^{--}_{fit}-N^{--}_{true})");
-    filename = TString("fit_accuracy_nn.eps");
+    filename = TString("fit_accuracy_nn.C");
   }
   if (!bs_fit) {
     // Error. Quit while ahead.
