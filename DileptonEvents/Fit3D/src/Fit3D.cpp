@@ -240,14 +240,16 @@ void Fit3D::generateModels(const int& interpolation_order)
       RooHistPdf pdf(name + "_pdf", name + "_pdf",
           xyz_variables, binned_data, interpolation_order);
       model_space.import(pdf);
-      RooPlot* frame = x_variable_->frame();
-      unbinned_data->plotOn(frame);
-      binned_data.plotOn(frame);
-      pdf.plotOn(frame);
-      TCanvas c1("c1", "Model", 200, 10, 700, 500);
-      frame->Draw();
-      c1.Print(name + "_pdf.eps");
-      delete frame;
+      if (false) {
+        RooPlot* frame = x_variable_->frame();
+        unbinned_data->plotOn(frame);
+        binned_data.plotOn(frame);
+        pdf.plotOn(frame);
+        TCanvas c1("c1", "Model", 200, 10, 700, 500);
+        frame->Draw();
+        c1.Print(name + "_pdf.eps");
+        delete frame;
+      }
     }
   }
   
@@ -431,7 +433,6 @@ void Fit3D::plotFitAccuracy(
   gr->SetTitle(title);
   gr->SetMarkerStyle(kOpenCircle);
   gr->SetMarkerColor(4);
-  gr->SetMarkerStyle(21);
   gr->Draw("AP");
 
   c1.Print(filename);
