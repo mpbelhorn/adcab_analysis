@@ -17,7 +17,7 @@
 #include "TGraphAsymmErrors.h"
 #include <vector>
 #include <iostream>
-
+#include <boost/filesystem.hpp>
 
 typedef vector<TH3D> HistogramListOverComponents;
 typedef vector<HistogramListOverComponents> HistogramListOverEventSigns;
@@ -86,6 +86,8 @@ class Fit3D : public DileptonEvents {
   RooRealVar* x_variable_;
   RooRealVar* y_variable_;
   RooRealVar* z_variable_;
+  
+  TString output_path_;
   
 };
 

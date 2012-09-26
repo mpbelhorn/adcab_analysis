@@ -19,6 +19,19 @@ Fit3D::Fit3D(
 {
   std::cout << "Initiliazing Fit3D class." << std::endl;
   
+  output_path_
+      = "/home/matt/research/belle/adcab/analysis/DileptonEvents/Fit3D/output/"
+      + analysis_name + "/";
+  
+  boost::filesystem::path output_dir(output_path_);
+  
+  if (boost::filesystem::exists(output_dir)) {
+    cout << "Output path exists. Overwriting directory contents!\n";
+  } else {
+    cout << "Output path does not exist. Creating new directory.\n";
+    boost::filesystem::create_directories(output_dir);
+  }
+  
   // Remove information about moving files. Really, all RooMsgService streams
   //   should be sent to a debug log.
   RooMsgService::instance().getStream(1).removeTopic(RooFit::ObjectHandling);
@@ -179,7 +192,7 @@ void Fit3D::drawHistograms()
         z_histograms[k]->Draw(options);
       }
     }
-    canvas.Print(tags_.species_[i] + ".eps");
+    canvas.Print(output_path_ + tags_.species_[i] + ".eps");
     while (!x_histograms.empty()) {
       delete x_histograms.back();
       x_histograms.pop_back();
@@ -247,7 +260,7 @@ void Fit3D::generateModels(const int& interpolation_order)
         pdf.plotOn(frame);
         TCanvas c1("c1", "Model", 200, 10, 700, 500);
         frame->Draw();
-        c1.Print(name + "_pdf.eps");
+        c1.Print(output_path_ + name + "_pdf.eps");
         delete frame;
       }
     }
@@ -369,7 +382,7 @@ void Fit3D::plotFitAccuracy(
   RooRealVar* cn_fit = (RooRealVar*) fit.floatParsFinal().find("n_cn_pp");
   
   TString title("Fit Accuracy (N^{++}_{fit}-N^{++}_{true})");
-  TString filename("fit_accuracy_pp.C");
+  TString filename(output_path_ + "fit_accuracy_pp");
   if (!bs_fit) {
     bs_fit = (RooRealVar*) fit.floatParsFinal().find("n_bs_nn");
     bd_fit = (RooRealVar*) fit.floatParsFinal().find("n_bd_nn");
@@ -377,7 +390,7 @@ void Fit3D::plotFitAccuracy(
     ww_fit = (RooRealVar*) fit.floatParsFinal().find("n_ww_nn");
     cn_fit = (RooRealVar*) fit.floatParsFinal().find("n_cn_nn");
     title = TString("Fit Accuracy (N^{--}_{fit}-N^{--}_{true})");
-    filename = TString("fit_accuracy_nn.C");
+    filename = TString(output_path_ + "fit_accuracy_nn");
   }
   if (!bs_fit) {
     // Error. Quit while ahead.
@@ -435,7 +448,12 @@ void Fit3D::plotFitAccuracy(
   gr->SetMarkerColor(4);
   gr->Draw("AP");
 
-  c1.Print(filename);
+  c1.Print(filename + ".eps");
+  
+  TFile accuracy_plot_file(filename + ".root", "RECREATE");
+  gr->Write();
+  accuracy_plot_file.Close();
+  
   return;
 }
 
@@ -523,5 +541,5 @@ void Fit3D::plotFitProjection(
       
   TCanvas* c1 = new TCanvas("c1", "Projection", 200, 10, 700, 500);
   frame->Draw();
-  c1->Print(filename);
+  c1->Print(output_path_ + filename);
 }
