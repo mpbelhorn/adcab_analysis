@@ -450,7 +450,10 @@ void Fit3D::plotAsymmetry() {
   asymmetries_graph.Draw("AP");
   line.Draw("l");
   c1.Print(output_path_ + "asymmetries.eps");
-  c1.Print(output_path_ + "asymmetries.root");
+  
+  TFile plots_file(output_path_ + "asymmetries.root", "RECREATE");
+  asymmetries_graph.Write();
+  plots_file.Close();
   
   return;
 }
