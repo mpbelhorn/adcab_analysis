@@ -327,40 +327,132 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
       "nn_model", "sig+bak", nn_model_components, nn_yields);
   
   std::cout << "Starting the fit." << std::endl;
-  RooFitResult* pp_fit_results = pp_model.fitTo(
+  pp_fit_results_ = pp_model.fitTo(
       pp_data,
       RooFit::Minos(true),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
       RooFit::Save(true));
   
-  RooFitResult* nn_fit_results = nn_model.fitTo(
+  nn_fit_results_ = nn_model.fitTo(
       nn_data,
       RooFit::Minos(true),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
       RooFit::Save(true));
   
-  plotFitAccuracy(pp_data, *pp_fit_results);
-  plotFitAccuracy(nn_data, *nn_fit_results);
-  plotFitProjection(*x_variable_, pp_data, *pp_fit_results, pp_model,
+  plotFitAccuracy(pp_data, *pp_fit_results_);
+  plotFitAccuracy(nn_data, *nn_fit_results_);
+  plotFitProjection(*x_variable_, pp_data, *pp_fit_results_, pp_model,
       *pp_bs_pdf, *pp_bd_pdf, *pp_cw_pdf, *pp_ww_pdf, *pp_cn_pdf,
       "pp_x_fit.eps");
-  plotFitProjection(*y_variable_, pp_data, *pp_fit_results, pp_model,
+  plotFitProjection(*y_variable_, pp_data, *pp_fit_results_, pp_model,
       *pp_bs_pdf, *pp_bd_pdf, *pp_cw_pdf, *pp_ww_pdf, *pp_cn_pdf,
       "pp_y_fit.eps");
-  plotFitProjection(*z_variable_, pp_data, *pp_fit_results, pp_model,
+  plotFitProjection(*z_variable_, pp_data, *pp_fit_results_, pp_model,
       *pp_bs_pdf, *pp_bd_pdf, *pp_cw_pdf, *pp_ww_pdf, *pp_cn_pdf,
       "pp_z_fit.eps");
-  plotFitProjection(*x_variable_, nn_data, *nn_fit_results, nn_model,
+  plotFitProjection(*x_variable_, nn_data, *nn_fit_results_, nn_model,
       *nn_bs_pdf, *nn_bd_pdf, *nn_cw_pdf, *nn_ww_pdf, *nn_cn_pdf,
       "nn_x_fit.eps");
-  plotFitProjection(*y_variable_, nn_data, *nn_fit_results, nn_model,
+  plotFitProjection(*y_variable_, nn_data, *nn_fit_results_, nn_model,
       *nn_bs_pdf, *nn_bd_pdf, *nn_cw_pdf, *nn_ww_pdf, *nn_cn_pdf,
       "nn_y_fit.eps");
-  plotFitProjection(*z_variable_, nn_data, *nn_fit_results, nn_model,
+  plotFitProjection(*z_variable_, nn_data, *nn_fit_results_, nn_model,
       *nn_bs_pdf, *nn_bd_pdf, *nn_cw_pdf, *nn_ww_pdf, *nn_cn_pdf,
       "nn_z_fit.eps");
+}
+
+void Fit3D::plotAsymmetry() {
+  RooRealVar* n_bs_pp
+      = (RooRealVar*) pp_fit_results_->floatParsFinal().find("n_bs_pp");
+  RooRealVar* n_bd_pp
+      = (RooRealVar*) pp_fit_results_->floatParsFinal().find("n_bd_pp");
+  
+  RooRealVar* n_bs_nn
+      = (RooRealVar*) nn_fit_results_->floatParsFinal().find("n_bs_nn");
+  RooRealVar* n_bd_nn
+      = (RooRealVar*) nn_fit_results_->floatParsFinal().find("n_bd_nn");
+  
+  double bs_population_difference(n_bs_pp->getVal() - n_bs_nn->getVal());
+  double bd_population_difference(n_bd_pp->getVal() - n_bd_nn->getVal());
+  double bs_population_sum(n_bs_pp->getVal() + n_bs_nn->getVal());
+  double bd_population_sum(n_bd_pp->getVal() + n_bd_nn->getVal());
+  
+  double error_n_bs_pp = n_bs_pp->getErrorLo();
+  if  (n_bs_pp->getErrorHi() > error_n_bs_pp) {
+    error_n_bs_pp = n_bs_pp->getErrorHi();
+  }
+  double error_n_bs_nn = n_bs_nn->getErrorLo();
+  if  (n_bs_nn->getErrorHi() > error_n_bs_nn) {
+    error_n_bs_nn = n_bs_nn->getErrorHi();
+  }
+  
+  double error_n_bd_pp = n_bd_pp->getErrorLo();
+  if  (n_bd_pp->getErrorHi() > error_n_bd_pp) {
+    error_n_bd_pp = n_bd_pp->getErrorHi();
+  }
+  double error_n_bd_nn = n_bd_nn->getErrorLo();
+  if  (n_bd_nn->getErrorHi() > error_n_bd_nn) {
+    error_n_bd_nn = n_bd_nn->getErrorHi();
+  }
+  
+  double n_b_pp = n_bs_pp->getVal() + n_bd_pp->getVal();
+  double n_b_nn = n_bs_nn->getVal() + n_bd_nn->getVal();
+  
+  double error_n_b_pp = sqrt(error_n_bs_pp * error_n_bs_pp
+      + error_n_bd_pp * error_n_bd_pp);
+  double error_n_b_nn = sqrt(error_n_bs_nn * error_n_bs_nn
+      + error_n_bd_nn * error_n_bd_nn);
+  
+  double bs_asymmetry = bs_population_difference / bs_population_sum;
+  double bs_asymmetry_error = 2 * sqrt(
+      (pow(error_n_bs_pp, 2) * pow(n_bs_nn->getVal(), 2)
+      + pow(error_n_bs_nn, 2) * pow(n_bs_pp->getVal(), 2))
+      / pow(bs_population_sum, 4));
+  
+  double bd_asymmetry = bd_population_difference / bd_population_sum;
+  double bd_asymmetry_error = 2 * sqrt(
+      (pow(error_n_bd_pp, 2) * pow(n_bd_nn->getVal(), 2)
+      + pow(error_n_bd_nn, 2) * pow(n_bd_pp->getVal(), 2))
+      / pow(bd_population_sum, 4));
+  
+  double b_asymmetry = (bs_population_difference + bd_population_difference)
+      / (bs_population_sum + bd_population_sum);
+  double b_asymmetry_error = 2 * sqrt(
+      (pow(error_n_b_pp, 2) * pow(n_b_nn, 2)
+      + pow(error_n_b_nn, 2) * pow(n_b_pp, 2)) / pow(n_b_pp + n_b_nn, 4));
+  
+  double asymmetries[3] = {
+      bs_asymmetry,
+      bd_asymmetry,
+      b_asymmetry};
+  double asymmetry_errors[3] = {
+      bs_asymmetry_error,
+      bd_asymmetry_error,
+      b_asymmetry_error};
+  double x[3] = {1, 2, 3};
+  double x_errors[3] = {0, 0, 0};
+  
+  TGraph line(2);
+  line.SetPoint(0,0,0);
+  line.SetPoint(1,7,0);
+  line.SetLineColor(kRed);
+  
+  TGraphErrors asymmetries_graph(3, x, asymmetries, x_errors, asymmetry_errors);
+  asymmetries_graph.SetMarkerStyle(kOpenCircle);
+  asymmetries_graph.SetTitle("Asymmetries");
+  asymmetries_graph.GetYaxis()->SetTitle("Asymmetry");
+  asymmetries_graph.GetXaxis()->SetTitle("a_{s}, a_{d}, A_{sl}^{b}");
+  
+  TCanvas c1("Asymmetries", "Asymmetries", 800, 600);
+  c1.cd(1);
+  asymmetries_graph.Draw("AP");
+  line.Draw("l");
+  c1.Print(output_path_ + "asymmetries.eps");
+  c1.Print(output_path_ + "asymmetries.root");
+  
+  return;
 }
 
 void Fit3D::plotFitAccuracy(

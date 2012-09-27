@@ -70,6 +70,7 @@ int main(int ac, char *av[])
   // Fit data, if requested.
   if (fit_flag) {
     fitter.fitData();
+    fitter.plotAsymmetry();
   }
   
   return 0;

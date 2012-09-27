@@ -14,7 +14,9 @@
 #include "RooPlot.h"
 #include "TH3.h"
 #include "TLatex.h"
+#include "TGraphErrors.h"
 #include "TGraphAsymmErrors.h"
+#include <math.h>
 #include <vector>
 #include <iostream>
 #include <boost/filesystem.hpp>
@@ -61,6 +63,7 @@ class Fit3D : public DileptonEvents {
   void fitData(
       const TString& filename = "data.root",
       const TString& data_set = "data_set");
+  void plotAsymmetry();
   void plotFitAccuracy(
       const RooDataSet& mc_data,
       const RooFitResult& fit);
@@ -86,6 +89,9 @@ class Fit3D : public DileptonEvents {
   RooRealVar* x_variable_;
   RooRealVar* y_variable_;
   RooRealVar* z_variable_;
+  
+  RooFitResult* pp_fit_results_;
+  RooFitResult* nn_fit_results_;
   
   TString output_path_;
   
