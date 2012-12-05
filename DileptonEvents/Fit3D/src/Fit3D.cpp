@@ -327,20 +327,17 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   double pp_data_size = double(pp_data.numEntries());
   double nn_data_size = double(pp_data.numEntries());
   
-  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0, 0, 50 * pp_data_size);
-  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 200, 0, 50 * pp_data_size);
-  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 200, 0, 50 * pp_data_size);
-  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 200, 0, 50 * pp_data_size);
-  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 200, 0, 50 * pp_data_size);
+  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 200, -50 * pp_data_size, 50 * pp_data_size);
+  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 200, -50 * pp_data_size, 50 * pp_data_size);
+  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 200, -50 * pp_data_size, 50 * pp_data_size);
+  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 200, -50 * pp_data_size, 50 * pp_data_size);
+  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 200, -50 * pp_data_size, 50 * pp_data_size);
   
-  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 0, 0, 50 * nn_data_size);
-  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 200, 0, 50 * nn_data_size);
-  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 200, 0, 50 * nn_data_size);
-  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 200, 0, 50 * nn_data_size);
-  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 200, 0, 50 * nn_data_size);
-  
-  n_bs_pp.setConstant(true);
-  n_bs_nn.setConstant(true);
+  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 200, -50 * nn_data_size, 50 * nn_data_size);
+  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 200, -50 * nn_data_size, 50 * nn_data_size);
+  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 200, -50 * nn_data_size, 50 * nn_data_size);
+  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 200, -50 * nn_data_size, 50 * nn_data_size);
+  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 200, -50 * nn_data_size, 50 * nn_data_size);
   
   RooArgList pp_yields(n_bs_pp, n_bd_pp, n_cw_pp, n_ww_pp, n_cn_pp);
   RooArgList nn_yields(n_bs_nn, n_bd_nn, n_cw_nn, n_ww_nn, n_cn_nn);
@@ -358,7 +355,7 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   std::cout << "Starting the fit." << std::endl;
   pp_fit_results_ = pp_model.fitTo(
       pp_data,
-      RooFit::Minos(false),
+      RooFit::Minos(true),
       RooFit::Hesse(false),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
@@ -366,7 +363,7 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   
   nn_fit_results_ = nn_model.fitTo(
       nn_data,
-      RooFit::Minos(false),
+      RooFit::Minos(true),
       RooFit::Hesse(false),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
