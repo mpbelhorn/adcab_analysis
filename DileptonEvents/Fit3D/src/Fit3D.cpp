@@ -46,9 +46,9 @@ Fit3D::Fit3D(
       "y_variable", y_axis_label, min_y_bin_edge, max_y_bin_edge, y_axis_unit);
   z_variable_ = new RooRealVar(
       "z_variable", z_axis_label, min_z_bin_edge, max_z_bin_edge, z_axis_unit);
-  x_variable_->setBins(30);
-  y_variable_->setBins(30);
-  z_variable_->setBins(30);
+  x_variable_->setBins(20);
+  y_variable_->setBins(20);
+  z_variable_->setBins(20);
   std::cout << "Adding new columns to dataset." << std::endl;
   RooArgSet analysis_variables(*x_variable_, *y_variable_, *z_variable_);
   data_set_->printArgs(cout);
@@ -106,10 +106,10 @@ void Fit3D::ntupleLoopCore(const int& entry_id)
   } else {
     z_value_ = l0_ip_dz - l1_ip_dz;
   }
-  
+
   AnalysisSelectors cuts(*this);
   fillDataSet(cuts.signal_type());
-  fillHistograms(cuts.signal_type());  
+  fillHistograms(cuts.signal_type());
 }
 
 void Fit3D::fillDataSet(const int &component)
@@ -121,7 +121,7 @@ void Fit3D::fillDataSet(const int &component)
     z_variable_->setVal(z_value_);
     component_->setIndex(component);
     event_sign_->setIndex(evt_sign);
-    event_species_->setIndex(typ_tru);
+    event_species_->setIndex(typ_asn);
     data_set_->add(
         RooArgSet(
             *x_variable_,
@@ -136,7 +136,8 @@ void Fit3D::fillDataSet(const int &component)
 void Fit3D::fillHistograms(const int& component)
 {
   // Catch bad entries. Real data will have typ_true = 0.
-  histograms_[typ_tru][evt_sign + 1][component].Fill(
+  // Use typ_asn for real data.
+  histograms_[typ_asn][evt_sign + 1][component].Fill(
       x_value_,
       y_value_,
       z_value_);
@@ -154,45 +155,67 @@ void Fit3D::drawHistograms()
       x_histograms.clear();
       y_histograms.clear();
       z_histograms.clear();
-      int x_max(0);
-      int y_max(0);
-      int z_max(0);
+      int x_min(0);
+      int y_min(0);
+      int z_min(0);
       for (int k = 0; k < tags_.components_.size(); ++k) {
         TString base_name = histograms_[i][j][k].GetName();
         TH1* x_histogram = histograms_[i][j][k].Project3D("x");
         x_histograms.push_back(x_histogram);
-        if (x_histogram->GetMaximum() > x_max) {
-          x_max = x_histogram->GetMaximum();
+        if (x_histogram->GetMinimum() > x_min) {
+          x_min = x_histogram->GetMinimum();
         }
         TH1* y_histogram = histograms_[i][j][k].Project3D("y");
         y_histograms.push_back(y_histogram);
-        if (y_histogram->GetMaximum() > y_max) {
-          y_max = y_histogram->GetMaximum();
+        if (y_histogram->GetMinimum() > y_min) {
+          y_min = y_histogram->GetMinimum();
         }
         TH1* z_histogram = histograms_[i][j][k].Project3D("z");
         z_histograms.push_back(z_histogram);
-        if (z_histogram->GetMaximum() > z_max) {
-          z_max = z_histogram->GetMaximum();
+        if (z_histogram->GetMinimum() > z_min) {
+          z_min = z_histogram->GetMinimum();
         }
       }
+      
+      TH1F* x_total = (TH1F*) x_histograms[0]->Clone("X Total");
+      TH1F* y_total = (TH1F*) y_histograms[0]->Clone("Y Total");
+      TH1F* z_total = (TH1F*) z_histograms[0]->Clone("Z Total");
+      
+      for (int k = 1; k < tags_.components_.size(); ++k) {
+        x_total->Add(x_histograms[k]);
+        y_total->Add(y_histograms[k]);
+        z_total->Add(z_histograms[k]);
+      }
+    
+      canvas.cd(j + 1 + 0);
+      x_total->SetLineColor(1);
+      x_total->SetMinimum(0);
+      x_total->Draw("e");
+      canvas.cd(j + 1 + 3);
+      y_total->SetLineColor(1);
+      y_total->SetMinimum(0);
+      y_total->Draw("e");
+      canvas.cd(j + 1 + 6);
+      z_total->SetLineColor(1);
+      z_total->SetMinimum(0);
+      z_total->Draw("e");
+      
       for (int k = 0; k < tags_.components_.size(); ++k) {
-        TString options = ((k == 0) ? "e" : "e same");
+        TString options = "e same";
         
         canvas.cd(j + 1 + 0);
-        x_histograms[k]->SetMaximum(1.1 * x_max);
         x_histograms[k]->SetLineColor(tags_.colors_[k]);
         x_histograms[k]->Draw(options);
         canvas.cd(j + 1 + 3);
-        y_histograms[k]->SetMaximum(1.1 * y_max);
         y_histograms[k]->SetLineColor(tags_.colors_[k]);
         y_histograms[k]->Draw(options);
         canvas.cd(j + 1 + 6);
-        z_histograms[k]->SetMaximum(1.1 * z_max);
         z_histograms[k]->SetLineColor(tags_.colors_[k]);
         z_histograms[k]->Draw(options);
       }
     }
     canvas.Print(output_path_ + tags_.species_[i] + ".eps");
+    
     while (!x_histograms.empty()) {
       delete x_histograms.back();
       x_histograms.pop_back();
@@ -301,17 +324,23 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   RooDataSet& pp_data = *((RooDataSet*) fit_data.reduce(pp_events_cut_));
   RooDataSet& nn_data = *((RooDataSet*) fit_data.reduce(nn_events_cut_));
   
-  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.0000e+00, 1.0000e+6);
-  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.0000e+00, 1.0000e+6);
-  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 0.0000e+00, 1.0000e+6);
-  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 0.0000e+00, 1.0000e+6);
-  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 0.0000e+00, 1.0000e+6);
+  double pp_data_size = double(pp_data.numEntries());
+  double nn_data_size = double(pp_data.numEntries());
   
-  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 0.0000e+00, 1.0000e+6);
-  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 0.0000e+00, 1.0000e+6);
-  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 0.0000e+00, 1.0000e+6);
-  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 0.0000e+00, 1.0000e+6);
-  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 0.0000e+00, 1.0000e+6);
+  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0, 0, 50 * pp_data_size);
+  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 200, 0, 50 * pp_data_size);
+  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 200, 0, 50 * pp_data_size);
+  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 200, 0, 50 * pp_data_size);
+  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 200, 0, 50 * pp_data_size);
+  
+  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 0, 0, 50 * nn_data_size);
+  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 200, 0, 50 * nn_data_size);
+  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 200, 0, 50 * nn_data_size);
+  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 200, 0, 50 * nn_data_size);
+  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 200, 0, 50 * nn_data_size);
+  
+  n_bs_pp.setConstant(true);
+  n_bs_nn.setConstant(true);
   
   RooArgList pp_yields(n_bs_pp, n_bd_pp, n_cw_pp, n_ww_pp, n_cn_pp);
   RooArgList nn_yields(n_bs_nn, n_bd_nn, n_cw_nn, n_ww_nn, n_cn_nn);
@@ -329,14 +358,16 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   std::cout << "Starting the fit." << std::endl;
   pp_fit_results_ = pp_model.fitTo(
       pp_data,
-      RooFit::Minos(true),
+      RooFit::Minos(false),
+      RooFit::Hesse(false),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
       RooFit::Save(true));
   
   nn_fit_results_ = nn_model.fitTo(
       nn_data,
-      RooFit::Minos(true),
+      RooFit::Minos(false),
+      RooFit::Hesse(false),
       RooFit::NumCPU(3),
       RooFit::Timer(true),
       RooFit::Save(true));
