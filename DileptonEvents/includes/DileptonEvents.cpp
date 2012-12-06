@@ -120,6 +120,7 @@ void DileptonEvents::init(TTree *tree)
   fChain->SetBranchAddress("hadronb", &hadronb, &b_hadronb);
   fChain->SetBranchAddress("cm_enrgy", &cm_enrgy, &b_cm_enrgy);
   fChain->SetBranchAddress("n_kaons", &n_kaons, &b_n_kaons);
+  fChain->SetBranchAddress("n_k_min", &n_k_min, &b_n_k_min);
   fChain->SetBranchAddress("typ_asn", &typ_asn, &b_typ_asn);
   fChain->SetBranchAddress("typ_tru", &typ_tru, &b_typ_tru);
   fChain->SetBranchAddress("evt_sign", &evt_sign, &b_evt_sign);

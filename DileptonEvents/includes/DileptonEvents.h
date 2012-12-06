@@ -71,6 +71,7 @@ class DileptonEvents {
   Float_t hadronb;
   Float_t cm_enrgy;
   Float_t n_kaons;
+  Float_t n_k_min;
   Float_t typ_asn;
   Float_t typ_tru;
   Float_t evt_sign;
@@ -116,6 +117,7 @@ class DileptonEvents {
   TBranch *b_hadronb;
   TBranch *b_cm_enrgy;
   TBranch *b_n_kaons;
+  TBranch *b_n_k_min;
   TBranch *b_typ_asn;
   TBranch *b_typ_tru;
   TBranch *b_evt_sign;

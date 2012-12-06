@@ -47,7 +47,7 @@ bool VeiledAttributes::muon()
 
 //______________________________________________________________________________
 
-ParticleAttributes::ParticleAttributes( int l0_or_l1, DileptonEvents& entry )
+ParticleAttributes::ParticleAttributes(int l0_or_l1, DileptonEvents& entry)
 {
   en_ = &entry;
   l0_or_l1_ = l0_or_l1;
@@ -62,7 +62,7 @@ bool ParticleAttributes::lepton()
 
 bool ParticleAttributes::mom( int momId )
 {
-  switch ( l0_or_l1_ ) {
+  switch (l0_or_l1_) {
     case 0: // l0
       return (std::abs( (*en_).l0_idmom ) == momId );
     case 1: // l1
@@ -200,10 +200,10 @@ char EventAttributes::type()
 AnalysisSelectors::AnalysisSelectors(DileptonEvents& entry)
 { 
   en_ = &entry;
-  l0 = ParticleAttributes( 0, entry );
-  l1 = ParticleAttributes( 1, entry );
-  asn = EventAttributes( 0, entry );
-  tru = EventAttributes( 1, entry );
+  l0 = ParticleAttributes(0, entry);
+  l1 = ParticleAttributes(1, entry);
+  asn = EventAttributes(0, entry);
+  tru = EventAttributes(1, entry);
 }
 
 bool AnalysisSelectors::sameSign()
