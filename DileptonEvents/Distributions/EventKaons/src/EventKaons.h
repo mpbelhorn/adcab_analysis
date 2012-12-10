@@ -36,7 +36,7 @@ class EventKaons : public DileptonEvents {
   void saveHistograms(const TString& filename = "histograms.root");
   
   float x_value_;
-  
+
   // Species, sign, component, variable
   SpeciesHistograms histograms_;
   int max_event_kaons_;
