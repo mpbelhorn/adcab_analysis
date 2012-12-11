@@ -46,9 +46,9 @@ Fit3D::Fit3D(
       "y_variable", y_axis_label, min_y_bin_edge, max_y_bin_edge, y_axis_unit);
   z_variable_ = new RooRealVar(
       "z_variable", z_axis_label, min_z_bin_edge, max_z_bin_edge, z_axis_unit);
-  x_variable_->setBins(20);
-  y_variable_->setBins(20);
-  z_variable_->setBins(20);
+  x_variable_->setBins(40);
+  y_variable_->setBins(40);
+  z_variable_->setBins(40);
   std::cout << "Adding new columns to dataset." << std::endl;
   RooArgSet analysis_variables(*x_variable_, *y_variable_, *z_variable_);
   data_set_->printArgs(cout);
