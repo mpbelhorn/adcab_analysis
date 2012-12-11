@@ -258,7 +258,7 @@ void Fit3D::generateModels(const int& interpolation_order)
   sign_cuts.push_back(pn_events_cut_);
   sign_cuts.push_back(pp_events_cut_);
   RooWorkspace model_space("model_space", "Fit models");
-  RooArgList xyz_variables(*x_variable_, *y_variable_, *z_variable_);
+  RooArgList xy_variables(*x_variable_, *y_variable_);
   data_set_->Print();
   for (int j = 0; j < tags_.signs_.size(); j++) {
     for (int k = 1; k < tags_.components_.size(); k++) {
@@ -271,21 +271,16 @@ void Fit3D::generateModels(const int& interpolation_order)
       std::cout << cut << std::endl;
       RooDataSet* unbinned_data = (RooDataSet*) data_set_->reduce(
           RooFit::Cut(cut));
-      RooDataHist binned_data(name + "_binned_data", name + "_binned_data",
-          xyz_variables, *unbinned_data);
-      RooHistPdf pdf(name + "_pdf", name + "_pdf",
-          xyz_variables, binned_data, interpolation_order);
+      RooDataHist binned_xy_data(name + "_binned_xy_data", name + "_binned_xy_data",
+          xy_variables, *unbinned_data);
+      RooDataHist binned_z_data(name + "_binned_z_data", name + "_binned_z_data",
+          *z_variable_, *unbinned_data);
+      RooHistPdf xy_pdf(name + "_xy_pdf", name + "_xy_pdf",
+          xy_variables, binned_xy_data, interpolation_order);
+      RooHistPdf z_pdf(name + "_z_pdf", name + "_z_pdf",
+          *z_variable_, binned_z_data, interpolation_order);
+      RooProdPdf pdf(name + "_pdf", name + "_pdf", xy_pdf, z_pdf);
       model_space.import(pdf);
-      if (false) {
-        RooPlot* frame = x_variable_->frame();
-        unbinned_data->plotOn(frame);
-        binned_data.plotOn(frame);
-        pdf.plotOn(frame);
-        TCanvas c1("c1", "Model", 200, 10, 700, 500);
-        frame->Draw();
-        c1.Print(output_path_ + name + "_pdf.eps");
-        delete frame;
-      }
     }
   }
   
@@ -327,17 +322,17 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   double pp_data_size = double(pp_data.numEntries());
   double nn_data_size = double(pp_data.numEntries());
   
-  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 200, -50 * pp_data_size, 50 * pp_data_size);
-  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 200, -50 * pp_data_size, 50 * pp_data_size);
-  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 200, -50 * pp_data_size, 50 * pp_data_size);
-  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 200, -50 * pp_data_size, 50 * pp_data_size);
-  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 200, -50 * pp_data_size, 50 * pp_data_size);
+  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 200, 0, 50 * pp_data_size);
+  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 200, 0, 50 * pp_data_size);
+  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 200, 0, 50 * pp_data_size);
+  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 200, 0, 50 * pp_data_size);
+  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 200, 0, 50 * pp_data_size);
   
-  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 200, -50 * nn_data_size, 50 * nn_data_size);
-  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 200, -50 * nn_data_size, 50 * nn_data_size);
-  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 200, -50 * nn_data_size, 50 * nn_data_size);
-  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 200, -50 * nn_data_size, 50 * nn_data_size);
-  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 200, -50 * nn_data_size, 50 * nn_data_size);
+  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 200, 0, 50 * nn_data_size);
+  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 200, 0, 50 * nn_data_size);
+  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 200, 0, 50 * nn_data_size);
+  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 200, 0, 50 * nn_data_size);
+  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 200, 0, 50 * nn_data_size);
   
   RooArgList pp_yields(n_bs_pp, n_bd_pp, n_cw_pp, n_ww_pp, n_cn_pp);
   RooArgList nn_yields(n_bs_nn, n_bd_nn, n_cw_nn, n_ww_nn, n_cn_nn);
@@ -617,9 +612,9 @@ void Fit3D::plotFitProjection(
          << endl;
     return;
   }
-  
+    
   data.plotOn(frame, RooFit::Name("data"));
-  // model.plotOn(frame, RooFit::Name("model"), RooFit::LineColor(kBlue));
+  model.plotOn(frame, RooFit::Name("model"), RooFit::LineColor(kBlue));
   bs_pdf.plotOn(frame,
       RooFit::Normalization(bs_fit->getVal(), RooAbsReal::NumEvent),
       RooFit::LineStyle(kDashed),

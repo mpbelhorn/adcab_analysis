@@ -64,7 +64,7 @@ int main(int ac, char *av[])
   
   // Generate models, if requested.
   if (generate_flag) {
-    fitter.generateModels(0);
+    fitter.generateModels(1);
   }
   
   // Fit data, if requested.
