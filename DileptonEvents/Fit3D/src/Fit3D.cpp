@@ -322,17 +322,17 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   double pp_data_size = double(pp_data.numEntries());
   double nn_data_size = double(pp_data.numEntries());
   
-  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.15 * pp_data_size, -50. * pp_data_size, 50. * pp_data_size);
-  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.24 * pp_data_size, -50. * pp_data_size, 50. * pp_data_size);
-  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 0.53 * pp_data_size, -50. * pp_data_size, 50. * pp_data_size);
-  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 0.04 * pp_data_size, -50. * pp_data_size, 50. * pp_data_size);
-  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 0.02 * pp_data_size, -50. * pp_data_size, 50. * pp_data_size);
+  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.15 * pp_data_size, 0. * pp_data_size, 50. * pp_data_size);
+  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.24 * pp_data_size, 0. * pp_data_size, 50. * pp_data_size);
+  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 0.53 * pp_data_size, 0. * pp_data_size, 50. * pp_data_size);
+  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 0.04 * pp_data_size, 0. * pp_data_size, 50. * pp_data_size);
+  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 0.02 * pp_data_size, 0. * pp_data_size, 50. * pp_data_size);
   
-  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 0.15 * nn_data_size, -50. * nn_data_size, 50. * nn_data_size);
-  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 0.24 * nn_data_size, -50. * nn_data_size, 50. * nn_data_size);
-  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 0.53 * nn_data_size, -50. * nn_data_size, 50. * nn_data_size);
-  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 0.04 * nn_data_size, -50. * nn_data_size, 50. * nn_data_size);
-  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 0.02 * nn_data_size, -50. * nn_data_size, 50. * nn_data_size);
+  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 0.15 * nn_data_size, 0. * nn_data_size, 50. * nn_data_size);
+  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 0.24 * nn_data_size, 0. * nn_data_size, 50. * nn_data_size);
+  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 0.53 * nn_data_size, 0. * nn_data_size, 50. * nn_data_size);
+  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 0.04 * nn_data_size, 0. * nn_data_size, 50. * nn_data_size);
+  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 0.02 * nn_data_size, 0. * nn_data_size, 50. * nn_data_size);
   
   RooArgList pp_yields(n_bs_pp, n_bd_pp, n_cw_pp, n_ww_pp, n_cn_pp);
   RooArgList nn_yields(n_bs_nn, n_bd_nn, n_cw_nn, n_ww_nn, n_cn_nn);
