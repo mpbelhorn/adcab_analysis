@@ -260,6 +260,10 @@ void Fit3D::generateModels(const int& interpolation_order)
   RooWorkspace model_space("model_space", "Fit models");
   RooArgList xy_variables(*x_variable_, *y_variable_);
   data_set_->Print();
+  RooRealVar detector_response_mean("detector_response_mean",
+      "detector_response_mean", 0.00);
+  RooRealVar detector_response_width("detector_response_width",
+    "detector_response_width", 0.0069);
   for (int j = 0; j < tags_.signs_.size(); j++) {
     for (int k = 1; k < tags_.components_.size(); k++) {
       TString name = "";
@@ -277,8 +281,16 @@ void Fit3D::generateModels(const int& interpolation_order)
           *z_variable_, *unbinned_data);
       RooHistPdf xy_pdf(name + "_xy_pdf", name + "_xy_pdf",
           xy_variables, binned_xy_data, interpolation_order);
-      RooHistPdf z_pdf(name + "_z_pdf", name + "_z_pdf",
+      RooHistPdf z_pdf_mc(name + "_z_pdf_mc", name + "_z_pdf_mc",
           *z_variable_, binned_z_data, interpolation_order);
+      RooGaussian z_resolution(name + "z_resolution",
+          name + "z_resolution",
+          *z_variable_,
+          detector_response_mean,
+          detector_response_width);
+      RooFFTConvPdf z_pdf(name + "_z_pdf", name + "_z_pdf", *z_variable_,
+          z_pdf_mc, z_resolution);
+      z_pdf.setBufferFraction(80);
       RooProdPdf pdf(name + "_pdf", name + "_pdf", xy_pdf, z_pdf);
       model_space.import(pdf);
     }

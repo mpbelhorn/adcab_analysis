@@ -51,7 +51,7 @@ int main(int ac, char *av[])
       vm["name"].as<string>(),
       "|p_{0}| + |p_{1}|", "GeV/c", 2.0, 5.25,
       "Cos(#theta_{ll})", "", -0.80, 0.98,
-      "#Delta z", "cm", 0, .2);
+      "#Delta z", "cm", 0.0, 0.18);
 
   // Process raw data.
   fitter.setCreateDataSet(true);
@@ -64,7 +64,7 @@ int main(int ac, char *av[])
   
   // Generate models, if requested.
   if (generate_flag) {
-    fitter.generateModels(1);
+    fitter.generateModels(2);
   }
   
   // Fit data, if requested.
