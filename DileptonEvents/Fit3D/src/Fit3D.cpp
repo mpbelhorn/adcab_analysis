@@ -179,9 +179,14 @@ void Fit3D::drawHistograms()
         }
       }
       
-      TH1F* x_total = (TH1F*) x_histograms[0]->Clone("X Total");
-      TH1F* y_total = (TH1F*) y_histograms[0]->Clone("Y Total");
-      TH1F* z_total = (TH1F*) z_histograms[0]->Clone("Z Total");
+      // Save and draw the histogram sum over components.
+      TString name = tags_.species_[i];
+      name.Append("_");
+      name.Append(tags_.signs_[j]);
+      
+      TH1F* x_total = (TH1F*) x_histograms[0]->Clone(name + "_x_total");
+      TH1F* y_total = (TH1F*) y_histograms[0]->Clone(name + "_y_total");
+      TH1F* z_total = (TH1F*) z_histograms[0]->Clone(name + "_z_total");
       
       for (int k = 1; k < tags_.components_.size(); ++k) {
         x_total->Add(x_histograms[k]);
@@ -193,37 +198,39 @@ void Fit3D::drawHistograms()
       x_total->SetLineColor(1);
       x_total->SetMinimum(0);
       x_total->Draw("e");
+      x_total->Write();
       canvas.cd(j + 1 + 3);
       y_total->SetLineColor(1);
       y_total->SetMinimum(0);
       y_total->Draw("e");
+      y_total->Write();
       canvas.cd(j + 1 + 6);
       z_total->SetLineColor(1);
       z_total->SetMinimum(0);
       z_total->Draw("e");
+      z_total->Write();
       
+      // Save and draw the component 3D and projection histograms.
       for (int k = 0; k < tags_.components_.size(); ++k) {
         TString options = "e same";
-        // Save the 3D histogram.
         histograms_[i][j][k].Write();
-        
-        // Save and print the projections.
-        x_histograms[k]->Write();
         canvas.cd(j + 1 + 0);
         x_histograms[k]->SetLineColor(tags_.colors_[k]);
         x_histograms[k]->Draw(options);
+        x_histograms[k]->Write();
         canvas.cd(j + 1 + 3);
-        y_histograms[k]->Write();
         y_histograms[k]->SetLineColor(tags_.colors_[k]);
         y_histograms[k]->Draw(options);
+        y_histograms[k]->Write();
         canvas.cd(j + 1 + 6);
-        z_histograms[k]->Write();
         z_histograms[k]->SetLineColor(tags_.colors_[k]);
         z_histograms[k]->Draw(options);
+        z_histograms[k]->Write();
       }
     }
     canvas.Print(output_path_ + tags_.species_[i] + ".eps");
     
+    // Clear the memory of Root's crappy heap objects.
     while (!x_histograms.empty()) {
       delete x_histograms.back();
       x_histograms.pop_back();

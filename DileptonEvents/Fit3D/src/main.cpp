@@ -41,8 +41,8 @@ int main(int ac, char *av[])
   }
   
   if (!(fit_flag || generate_flag)) {
-    std::cout << "Specify at least one of the flags 'fit' or 'generate'.\n";
-    return 1;
+    std::cout << "WARNING: Plotting the data only! "
+        << "Specify at least one of the flags 'fit' or 'generate'.\n";
   }
   
   // Process ntuple: generate plots and dataset.
@@ -59,7 +59,7 @@ int main(int ac, char *av[])
 
   // Save processed data.
   fitter.drawHistograms();
-  fitter.saveDataSet();
+  //fitter.saveDataSet();
   
   // Generate models, if requested.
   if (generate_flag) {
