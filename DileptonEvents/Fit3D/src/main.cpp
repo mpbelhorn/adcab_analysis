@@ -59,7 +59,6 @@ int main(int ac, char *av[])
 
   // Save processed data.
   fitter.drawHistograms();
-  fitter.saveHistograms();
   fitter.saveDataSet();
   
   // Generate models, if requested.

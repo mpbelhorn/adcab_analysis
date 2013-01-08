@@ -145,6 +145,7 @@ void Fit3D::fillHistograms(const int& component)
 
 void Fit3D::drawHistograms()
 {
+  TFile histogram_file(output_path_ + "histograms.root", "RECREATE");
   for (int i = 0; i < tags_.species_.size(); ++i) {
     TCanvas canvas("canvas", tags_.species_[i], 1200, 1200);
     canvas.Divide(3, 3);
@@ -161,6 +162,7 @@ void Fit3D::drawHistograms()
       for (int k = 0; k < tags_.components_.size(); ++k) {
         TString base_name = histograms_[i][j][k].GetName();
         TH1* x_histogram = histograms_[i][j][k].Project3D("x");
+        
         x_histograms.push_back(x_histogram);
         if (x_histogram->GetMinimum() > x_min) {
           x_min = x_histogram->GetMinimum();
@@ -202,14 +204,20 @@ void Fit3D::drawHistograms()
       
       for (int k = 0; k < tags_.components_.size(); ++k) {
         TString options = "e same";
+        // Save the 3D histogram.
+        histograms_[i][j][k].Write();
         
+        // Save and print the projections.
+        x_histograms[k]->Write();
         canvas.cd(j + 1 + 0);
         x_histograms[k]->SetLineColor(tags_.colors_[k]);
         x_histograms[k]->Draw(options);
         canvas.cd(j + 1 + 3);
+        y_histograms[k]->Write();
         y_histograms[k]->SetLineColor(tags_.colors_[k]);
         y_histograms[k]->Draw(options);
         canvas.cd(j + 1 + 6);
+        z_histograms[k]->Write();
         z_histograms[k]->SetLineColor(tags_.colors_[k]);
         z_histograms[k]->Draw(options);
       }
@@ -227,18 +235,6 @@ void Fit3D::drawHistograms()
     while (!z_histograms.empty()) {
       delete z_histograms.back();
       z_histograms.pop_back();
-    }
-  }
-}
-
-void Fit3D::saveHistograms(const TString& filename)
-{
-  TFile histogram_file(filename, "RECREATE");
-  for (int i = 0; i < tags_.species_.size(); ++i) {
-    for (int j = 0; j < tags_.signs_.size(); ++j) {
-      for (int k = 0; k < tags_.components_.size(); ++k) {
-        histograms_[i][j][k].Write();
-      }
     }
   }
   histogram_file.Close();
@@ -275,9 +271,11 @@ void Fit3D::generateModels(const int& interpolation_order)
       std::cout << cut << std::endl;
       RooDataSet* unbinned_data = (RooDataSet*) data_set_->reduce(
           RooFit::Cut(cut));
-      RooDataHist binned_xy_data(name + "_binned_xy_data", name + "_binned_xy_data",
+      RooDataHist binned_xy_data(name + "_binned_xy_data",
+          name + "_binned_xy_data",
           xy_variables, *unbinned_data);
-      RooDataHist binned_z_data(name + "_binned_z_data", name + "_binned_z_data",
+      RooDataHist binned_z_data(name + "_binned_z_data",
+          name + "_binned_z_data",
           *z_variable_, *unbinned_data);
       RooHistPdf xy_pdf(name + "_xy_pdf", name + "_xy_pdf",
           xy_variables, binned_xy_data, interpolation_order);
@@ -334,17 +332,47 @@ void Fit3D::fitData(const TString& filename, const TString& data_set)
   double pp_data_size = double(pp_data.numEntries());
   double nn_data_size = double(pp_data.numEntries());
   
-  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp", 0.15 * pp_data_size, 0. * pp_data_size, 50. * pp_data_size);
-  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp", 0.24 * pp_data_size, 0. * pp_data_size, 50. * pp_data_size);
-  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp", 0.53 * pp_data_size, 0. * pp_data_size, 50. * pp_data_size);
-  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp", 0.04 * pp_data_size, 0. * pp_data_size, 50. * pp_data_size);
-  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp", 0.02 * pp_data_size, 0. * pp_data_size, 50. * pp_data_size);
+  RooRealVar n_bs_pp("n_bs_pp", "n_bs_pp",
+      0.15 * pp_data_size,
+      0.00 * pp_data_size,
+      50.0 * pp_data_size);
+  RooRealVar n_bd_pp("n_bd_pp", "n_bd_pp",
+      0.24 * pp_data_size,
+      0.00 * pp_data_size,
+      50.0 * pp_data_size);
+  RooRealVar n_cw_pp("n_cw_pp", "n_cw_pp",
+      0.53 * pp_data_size,
+      0.00 * pp_data_size,
+      50.0 * pp_data_size);
+  RooRealVar n_ww_pp("n_ww_pp", "n_ww_pp",
+      0.04 * pp_data_size,
+      0.00 * pp_data_size,
+      50.0 * pp_data_size);
+  RooRealVar n_cn_pp("n_cn_pp", "n_cn_pp",
+      0.02 * pp_data_size,
+      0.00 * pp_data_size,
+      50.0 * pp_data_size);
   
-  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn", 0.15 * nn_data_size, 0. * nn_data_size, 50. * nn_data_size);
-  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn", 0.24 * nn_data_size, 0. * nn_data_size, 50. * nn_data_size);
-  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn", 0.53 * nn_data_size, 0. * nn_data_size, 50. * nn_data_size);
-  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn", 0.04 * nn_data_size, 0. * nn_data_size, 50. * nn_data_size);
-  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn", 0.02 * nn_data_size, 0. * nn_data_size, 50. * nn_data_size);
+  RooRealVar n_bs_nn("n_bs_nn", "n_bs_nn",
+      0.15 * nn_data_size,
+      0.00 * nn_data_size,
+      50.0 * nn_data_size);
+  RooRealVar n_bd_nn("n_bd_nn", "n_bd_nn",
+      0.24 * nn_data_size,
+      0.00 * nn_data_size,
+      50.0 * nn_data_size);
+  RooRealVar n_cw_nn("n_cw_nn", "n_cw_nn",
+      0.53 * nn_data_size,
+      0.00 * nn_data_size,
+      50.0 * nn_data_size);
+  RooRealVar n_ww_nn("n_ww_nn", "n_ww_nn",
+      0.04 * nn_data_size,
+      0.00 * nn_data_size,
+      50.0 * nn_data_size);
+  RooRealVar n_cn_nn("n_cn_nn", "n_cn_nn",
+      0.02 * nn_data_size,
+      0.00 * nn_data_size,
+      50.0 * nn_data_size);
   
   RooArgList pp_yields(n_bs_pp, n_bd_pp, n_cw_pp, n_ww_pp, n_cn_pp);
   RooArgList nn_yields(n_bs_nn, n_bd_nn, n_cw_nn, n_ww_nn, n_cn_nn);

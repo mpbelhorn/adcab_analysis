@@ -61,7 +61,6 @@ class Fit3D : public DileptonEvents {
   void fillDataSet(const int &component);
   void fillHistograms(const int& component);
   void drawHistograms();
-  void saveHistograms(const TString& filename = "histograms.root");
   void generateModels(const int& interpolation_order = 0);
   void fitData(
       const TString& filename = "data.root",
