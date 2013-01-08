@@ -38,6 +38,7 @@ Fit3D::Fit3D(
   RooMsgService::instance().getStream(1).removeTopic(RooFit::Plotting);
   RooMsgService::instance().getStream(0).removeTopic(RooFit::Minimization);
   RooMsgService::instance().getStream(1).removeTopic(RooFit::Minimization);
+  RooMsgService::instance().getStream(1).removeTopic(RooFit::Caching);
 
   // Define the data set elements and add them to the dataset.
   x_variable_ = new RooRealVar(
@@ -247,7 +248,9 @@ void Fit3D::drawHistograms()
   histogram_file.Close();
 }
 
-void Fit3D::generateModels(const int& interpolation_order)
+void Fit3D::generateModels(
+    const int& interpolation_order,
+    const bool& detector_convolution)
 {
   std::cout << "Generating models..." << endl;
   vector<TCut> component_cuts;
@@ -286,32 +289,48 @@ void Fit3D::generateModels(const int& interpolation_order)
           *z_variable_, *unbinned_data);
       RooHistPdf xy_pdf(name + "_xy_pdf", name + "_xy_pdf",
           xy_variables, binned_xy_data, interpolation_order);
-      RooHistPdf z_pdf_mc(name + "_z_pdf_mc", name + "_z_pdf_mc",
-          *z_variable_, binned_z_data, interpolation_order);
-      RooGaussian z_resolution(name + "z_resolution",
-          name + "z_resolution",
-          *z_variable_,
-          detector_response_mean,
-          detector_response_width);
-      RooFFTConvPdf z_pdf(name + "_z_pdf", name + "_z_pdf", *z_variable_,
-          z_pdf_mc, z_resolution);
-      z_pdf.setBufferFraction(80);
-      RooProdPdf pdf(name + "_pdf", name + "_pdf", xy_pdf, z_pdf);
-      model_space.import(pdf);
+      if (tags_.components_[k] == TString("cn") || !detector_convolution) {
+        // Shouldn't convolve this one!
+        RooHistPdf z_pdf(name + "_z_pdf", name + "_z_pdf",
+            *z_variable_, binned_z_data, interpolation_order);
+        RooProdPdf pdf(name + "_pdf", name + "_pdf", xy_pdf, z_pdf);
+        model_space.import(pdf);
+      } else {
+        // Convolve that shit!
+        RooHistPdf z_pdf_mc(name + "_z_pdf_mc", name + "_z_pdf_mc",
+            *z_variable_, binned_z_data, interpolation_order);
+        RooGaussian z_resolution(name + "z_resolution",
+            name + "z_resolution",
+            *z_variable_,
+            detector_response_mean,
+            detector_response_width);
+        RooFFTConvPdf z_pdf(name + "_z_pdf", name + "_z_pdf", *z_variable_,
+            z_pdf_mc, z_resolution);
+        z_pdf.setBufferFraction(80);
+        RooProdPdf pdf(name + "_pdf", name + "_pdf", xy_pdf, z_pdf);
+        model_space.import(pdf);
+      }
     }
   }
+  TString model_filename("models");
+  if (detector_convolution) {
+    model_filename.Append("_convolved");
+  } else {
+    model_filename.Append("_unconvolved");
+  }
+  model_filename.Append(".root");
   
-  model_space.import(*data_set_);
-  TFile models_file("models.root", "RECREATE");
+  // model_space.import(*data_set_);
+  TFile models_file(model_filename, "RECREATE");
   model_space.Write();
   models_file.Close();
   
   std::cout << "Finished!" << endl;
 }
 
-void Fit3D::fitData(const TString& filename, const TString& data_set)
+void Fit3D::fitData(const TString& filename)
 {  
-  TFile models_file("models.root", "READ");
+  TFile models_file(filename, "READ");
   RooWorkspace* model_space = (RooWorkspace*) models_file.Get("model_space");
   
   if (!model_space) {
@@ -635,9 +654,6 @@ void Fit3D::plotFitProjection(
     const TString &filename)
 {
   RooPlot* frame = independant_variable.frame();
-  TString frame_title = "Fit Projection on ";
-  frame_title.Append(independant_variable.GetTitle());
-  frame->SetTitle(frame_title);
   
   RooRealVar* bs_fit = (RooRealVar*) fit.floatParsFinal().find("n_bs_pp");
   RooRealVar* bd_fit = (RooRealVar*) fit.floatParsFinal().find("n_bd_pp");
@@ -662,6 +678,11 @@ void Fit3D::plotFitProjection(
     
   data.plotOn(frame, RooFit::Name("data"));
   model.plotOn(frame, RooFit::Name("model"), RooFit::LineColor(kBlue));
+  TString chi2_label(Form(" (#chi^{2} = %f)", frame->chiSquare(5)));
+  TString frame_title = "Fit Projection on ";
+  frame_title.Append(independant_variable.GetTitle());
+  frame_title.Append(chi2_label);
+  frame->SetTitle(frame_title);
   bs_pdf.plotOn(frame,
       RooFit::Normalization(bs_fit->getVal(), RooAbsReal::NumEvent),
       RooFit::LineStyle(kDashed),

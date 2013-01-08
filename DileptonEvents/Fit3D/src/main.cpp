@@ -7,6 +7,7 @@ int main(int ac, char *av[])
 {
   bool generate_flag = false;
   bool fit_flag = false;
+  bool convolve_flag = false;
   
   // Declare the CLI options and parameters.
   po::options_description desc("Allowed options");
@@ -17,7 +18,9 @@ int main(int ac, char *av[])
           "Name of the processed data")
       ("generate,g", po::bool_switch(&generate_flag),
           "Generate PDFs from input data")
-      ("fit,f", po::bool_switch(&fit_flag), "Fit data to generated PDFs");
+      ("fit,f", po::bool_switch(&fit_flag), "Fit data to generated PDFs")
+      ("convolve,c", po::bool_switch(&convolve_flag),
+          "Apply detector resolution convokution to MC-generated Z-pdfs");
   
   po::positional_options_description pos;
   pos.add("input-file", 1);
@@ -63,12 +66,14 @@ int main(int ac, char *av[])
   
   // Generate models, if requested.
   if (generate_flag) {
-    fitter.generateModels(2);
+    fitter.generateModels(2, convolve_flag);
   }
   
   // Fit data, if requested.
   if (fit_flag) {
-    fitter.fitData();
+    TString target = convolve_flag ? "models_convolved.root" : "models_unconvolved.root";
+    std::cout << "Using model file '" << target <<"'.\n";
+    fitter.fitData(target);
     fitter.plotAsymmetry();
   }
   

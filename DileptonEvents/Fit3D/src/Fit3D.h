@@ -17,6 +17,7 @@
 #include "RooPlot.h"
 #include "TH3.h"
 #include "TLatex.h"
+#include "TPaveLabel.h"
 #include "TGraphErrors.h"
 #include "TGraphAsymmErrors.h"
 #include <math.h>
@@ -61,10 +62,11 @@ class Fit3D : public DileptonEvents {
   void fillDataSet(const int &component);
   void fillHistograms(const int& component);
   void drawHistograms();
-  void generateModels(const int& interpolation_order = 0);
+  void generateModels(
+      const int& interpolation_order = 0,
+      const bool& detector_convolution = true);
   void fitData(
-      const TString& filename = "data.root",
-      const TString& data_set = "data_set");
+      const TString& filename = "models_convoled.root");
   void plotAsymmetry();
   void plotFitAccuracy(
       const RooDataSet& mc_data,
